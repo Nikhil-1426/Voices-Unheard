@@ -28,8 +28,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import './App.css';
-import SignIn from './SignIn';
-import SignUp from './SignUp';
 import GoogleSignIn from './GoogleSignIn';
 import UserProfile from './UserProfile';
 import PrivateRoute from './PrivateRoute';
@@ -46,8 +44,6 @@ function App() {
               <li><Link to="/about">About</Link></li>
               <li><Link to="/features">Features</Link></li>
               <li><Link to="/contact">Contact</Link></li>
-              <li><Link to="/signin">Sign In</Link></li>
-              <li><Link to="/signup">Sign Up</Link></li>
               <li><Link to="/google-signin">Google Sign In</Link></li>
               <li><Link to="/profile">Profile</Link></li>
             </ul>
@@ -79,8 +75,6 @@ function App() {
               <p>Email: support@voicesunheard.com</p>
             </section>
           } />
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
           <Route path="/google-signin" element={<GoogleSignIn />} />
           <Route path="/profile" element={<PrivateRoute element={<UserProfile />} />} />
           <Route path="/" element={

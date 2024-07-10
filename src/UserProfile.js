@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from './firebase';
 import { doc, getDoc } from "firebase/firestore";
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 function UserProfile() {
   const [user, setUser] = useState(null);
@@ -22,6 +22,15 @@ function UserProfile() {
     return () => unsubscribe();
   }, []);
 
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      alert('Signed out successfully');
+    } catch (error) {
+      console.error('Error signing out: ', error);
+    }
+  };
+
   if (!user) {
     return <div>Please sign in.</div>;
   }
@@ -36,9 +45,11 @@ function UserProfile() {
       <img src={profile.photoURL} alt="Profile" />
       <p>Name: {profile.displayName}</p>
       <p>Email: {profile.email}</p>
+      <button onClick={handleSignOut}>Sign Out</button>
     </div>
   );
 }
 
 export default UserProfile;
+
 
