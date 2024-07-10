@@ -1,36 +1,10 @@
-// import logo from './logo.svg';
-// import './App.css';
-
-// function App() {
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <img src={logo} className="App-logo" alt="logo" />
-//         <p>
-//           Edit <code>src/App.js</code> and save to reload.
-//         </p>
-//         <a
-//           className="App-link"
-//           href="https://reactjs.org"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           Learn React
-//         </a>
-//       </header>
-//     </div>
-//   );
-// }
-
-// export default App;
-
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import './App.css';
 import GoogleSignIn from './GoogleSignIn';
 import UserProfile from './UserProfile';
 import PrivateRoute from './PrivateRoute';
+import Communities from './Communities';
 
 function App() {
   return (
@@ -42,6 +16,7 @@ function App() {
             <ul>
               <li><Link to="/">Home</Link></li>
               <li><Link to="/about">About</Link></li>
+              <li><Link to="/communities">Communities</Link></li> {/* Added Communities link */}
               <li><Link to="/features">Features</Link></li>
               <li><Link to="/contact">Contact</Link></li>
               <li><Link to="/google-signin">Google Sign In</Link></li>
@@ -75,6 +50,7 @@ function App() {
               <p>Email: support@voicesunheard.com</p>
             </section>
           } />
+          <Route path="/communities" element={<Communities />} /> {/* Added Communities route */}
           <Route path="/google-signin" element={<GoogleSignIn />} />
           <Route path="/profile" element={<PrivateRoute element={<UserProfile />} />} />
           <Route path="/" element={
@@ -94,6 +70,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
