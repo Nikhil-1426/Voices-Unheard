@@ -40,4 +40,4 @@ const signInWithGoogle = async () => {
     return user;
   };
   
-  export { auth, signInWithGoogle, db };
+  export { auth, signInWithGoogle, db, provider };
