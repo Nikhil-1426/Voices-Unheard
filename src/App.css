@@ -40,14 +40,16 @@
 
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
   background-color: #f4f4f4;
   color: #333;
+  line-height: 260%;
 }
 
 .App-header {
-  background-color: #4CAF50;
+  background-color: #1e613f;
   padding: 20px;
+  font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
   text-align: center;
   color: white;
 }
@@ -58,8 +60,8 @@ body {
 }
 
 .App-header nav ul li {
-  display: inline;
-  margin: 0 15px;
+  display:inline;
+  margin: 0 2%;
 }
 
 .App-header nav ul li a {
@@ -69,8 +71,8 @@ body {
 
 .App-hero {
   background: url('https://i.pinimg.com/736x/81/7c/30/817c301d5abfe5bee18164abaa641ac4.jpg') no-repeat center center;
-  background-size: cover;
-  padding: 100px 20px;
+  background-size:cover;
+  padding: 100px 150px;
   text-align: center;
   color: white;
 }
@@ -78,11 +80,14 @@ body {
 .App-hero h2 {
   font-size: 2.5em;
   margin-bottom: 20px;
+  color: rgb(180, 215, 22);
+  background-color: rgba(0, 0, 0, 0.548);
 }
 
 .App-hero p {
   font-size: 1.2em;
   margin-bottom: 20px;
+  background-color: rgba(0, 0, 0, 0.575);
 }
 
 .App-hero button {
@@ -113,4 +118,6 @@ body {
   color: white;
   padding: 10px;
   text-align: center;
+  ;
+  
 }
