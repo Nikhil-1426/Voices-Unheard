@@ -5,6 +5,7 @@ import GoogleSignIn from './GoogleSignIn';
 import UserProfile from './UserProfile';
 import PrivateRoute from './PrivateRoute';
 import Communities from './Communities';
+import MyProfileMenu from './MyProfileMenu';
 
 function App() {
   return (
@@ -20,9 +21,16 @@ function App() {
               <li><Link to="/features">Features</Link></li>
               <li><Link to="/contact">Contact</Link></li>
               <li><Link to="/google-signin">Google Sign In</Link></li>
-              <li><Link to="/profile">Profile</Link></li>
+              <li><Link to="/profile">My Profile</Link></li>
+              <li><MyProfileMenu /></li>
+
             </ul>
           </nav>
+          <nav className="menu-bar">
+        <ul>
+          
+        </ul>
+      </nav>
         </header>
         <Routes>
           <Route path="/about" element={
@@ -55,7 +63,7 @@ function App() {
           <Route path="/profile" element={<PrivateRoute element={<UserProfile />} />} />
           <Route path="/" element={
             <section className="App-hero">
-              <h2 style={{ color: 'red' }}>Amplifying the Voices of Underrepresented Communities</h2>
+              <h2 style={{ }}>Amplifying the Voices of Underrepresented Communities</h2>
               <p>Share stories, organize events, and connect with mentors to foster global awareness and understanding.</p>
               <button>Get Started</button>
             </section>
