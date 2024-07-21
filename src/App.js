@@ -5,7 +5,6 @@ import GoogleSignIn from './GoogleSignIn';
 import UserProfile from './UserProfile';
 import PrivateRoute from './PrivateRoute';
 import Communities from './Communities';
-import MyProfileMenu from './MyProfileMenu';
 
 function App() {
   return (
@@ -22,8 +21,6 @@ function App() {
               <li><Link to="/contact">Contact</Link></li>
               <li><Link to="/google-signin">Google Sign In</Link></li>
               <li><Link to="/profile">My Profile</Link></li>
-              <li><MyProfileMenu /></li>
-
             </ul>
           </nav>
           <nav className="menu-bar">
