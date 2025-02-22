@@ -1,19 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:share_plus/share_plus.dart';
-
-// Matching color palette from auth page
-class AppColors {
-  static const Map<String, Color> colors = {
-    'primary': Color(0xFF6B6B6B),
-    'secondary': Color(0xFF4ECDC4),
-    'accent1': Color(0xFFFFBE0B),
-    'accent2': Color(0xFF7209B7),
-    'accent3': Color(0xFF06D6A0),
-    'background': Color(0xFFFFF1E6),
-    'error': Color(0xFFFF4858),
-  };
-}
+import 'product_page.dart';
+import 'community_page.dart';
+import 'education_page.dart';
+import 'settings_page.dart';
+import 'package:voices_unheard/app_colors.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -176,8 +168,44 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onItemTapped(int index) {
-    setState(() => _selectedIndex = index);
+  setState(() {
+    _selectedIndex = index;
+  });
+
+  switch (index) {
+    case 0:
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => ProductPage()),
+      );
+      break;
+    case 1:
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => CommunityPage()),
+      );
+      break;
+    case 2:
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()),
+      );
+      break;
+    case 3:
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => EducationPage()),
+      );
+      break;
+    case 4:
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => SettingsPage()),
+      );
+      break;
   }
+}
+
   
   @override
   Widget build(BuildContext context) {
