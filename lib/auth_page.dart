@@ -28,6 +28,7 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
     'background': Color(0xFFFFF1E6),  // Warm cream
     'error': Color(0xFFFF4858),       // Bright red
   };
+  bool isPasswordVisible = false;
 
   @override
   void initState() {
@@ -186,7 +187,7 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
                               ),
                             ],
                           ),
-                          child: TextFormField(
+                          child:TextFormField(
                             controller: emailController,
                             decoration: InputDecoration(
                               labelText: 'Email',
@@ -212,6 +213,7 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
                             textInputAction: TextInputAction.next,
                             autofillHints: [AutofillHints.email],
                           ),
+                              
                         ),
                         SizedBox(height: 20),
                         // Password field with custom decoration
@@ -233,31 +235,42 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
                             ],
                           ),
                           child: TextFormField(
-                            controller: passwordController,
-                            decoration: InputDecoration(
-                              labelText: 'Password',
-                              hintText: 'Enter your password',
-                              prefixIcon: Icon(Icons.lock_outline, color: colors['accent2']),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide.none,
+                              controller: passwordController,
+                              decoration: InputDecoration(
+                                labelText: 'Password',
+                                hintText: 'Enter your password',
+                                prefixIcon: Icon(Icons.lock_outline, color: colors['accent2']),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                                    color: colors['accent2'],
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      isPasswordVisible = !isPasswordVisible;
+                                    });
+                                  },
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide.none,
+                                ),
+                                filled: true,
+                                fillColor: Colors.transparent,
                               ),
-                              filled: true,
-                              fillColor: Colors.transparent,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter your password';
+                                }
+                                if (isSignUp && value.length < 8) {
+                                  return 'Password must be at least 8 characters';
+                                }
+                                return null;
+                              },
+                              obscureText: !isPasswordVisible, // Correct usage of the variable
+                              textInputAction: TextInputAction.done,
+                              autofillHints: [AutofillHints.password],
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter your password';
-                              }
-                              if (isSignUp && value.length < 8) {
-                                return 'Password must be at least 8 characters';
-                              }
-                              return null;
-                            },
-                            obscureText: true,
-                            textInputAction: TextInputAction.done,
-                            autofillHints: [AutofillHints.password],
-                          ),
                         ),
                         SizedBox(height: 32),
                         // Animated submit button
