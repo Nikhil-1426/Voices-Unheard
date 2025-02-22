@@ -157,11 +157,11 @@ class _HomePageState extends State<HomePage> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
-          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Post'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Notifications'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_rounded), label: 'Product'),
+          BottomNavigationBarItem(icon: Icon(Icons.people_alt_sharp), label: 'Community'),
+          BottomNavigationBarItem(icon: Icon(Icons.house_rounded), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.library_books_rounded), label: 'Education'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.deepPurple,
