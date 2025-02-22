@@ -8,7 +8,6 @@ import 'settings_page.dart';
 import 'package:voices_unheard/app_colors.dart';
 // Matching color palette from auth page
 
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -67,16 +66,6 @@ class _HomePageState extends State<HomePage> {
     }
   });
 }
-   void _onItemTapped(int index) {
-    if (index == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => EducationPage()),
-      );
-    } else {
-      setState(() => _selectedIndex = index);
-    }
-  }
 
   void _createPost() {
     showDialog(
@@ -197,9 +186,7 @@ class _HomePageState extends State<HomePage> {
   void _sharePost(String content) {
     Share.share(content);
   }
-  
-
-
+ 
   
  @override
 Widget build(BuildContext context) {

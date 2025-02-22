@@ -361,7 +361,6 @@ class PatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..style = PaintingStyle.fill;
-    final path = Path();
 
     // Create abstract shapes representing diversity
     for (int i = 0; i < colors.length; i++) {

@@ -16,3 +16,4 @@ class AppColors {
     'cardBg4': Color(0xFFFFE8EF),      // Light pink
   };
 }
+
