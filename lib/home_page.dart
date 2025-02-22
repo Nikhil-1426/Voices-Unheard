@@ -19,7 +19,11 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final SupabaseClient supabase = Supabase.instance.client;
   TextEditingController postController = TextEditingController();
+  
+  final TextEditingController searchController = TextEditingController();
+  List<Map<String, dynamic>> filteredPosts = [];
   List<Map<String, dynamic>> posts = [];
+  
   int _selectedIndex = 2;
 
   @override
@@ -37,6 +41,7 @@ class _HomePageState extends State<HomePage> {
 
       setState(() {
         posts = response.map((post) => Map<String, dynamic>.from(post)).toList();
+        filteredPosts = posts; // Initially, filtered posts = all posts
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -48,6 +53,20 @@ class _HomePageState extends State<HomePage> {
       );
     }
   }
+  void _filterPosts(String query) {
+  setState(() {
+    if (query.isEmpty) {
+      filteredPosts = posts;
+    } else {
+      filteredPosts = posts.where((post) {
+        final content = post['content']?.toString().toLowerCase() ?? '';
+        final userId = post['user_id']?.toString().toLowerCase() ?? '';
+        return content.contains(query.toLowerCase()) ||
+            userId.contains(query.toLowerCase());
+      }).toList();
+    }
+  });
+}
    void _onItemTapped(int index) {
     if (index == 3) {
       Navigator.push(
@@ -178,223 +197,238 @@ class _HomePageState extends State<HomePage> {
   void _sharePost(String content) {
     Share.share(content);
   }
+  
 
 
   
-  @override
-  Widget build(BuildContext context) {
-    return Theme(
-      data: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: AppColors.colors['background'],
-      ),
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            "Voices Unheard",
-            style: TextStyle(
-              color: AppColors.colors['accent2'],
-              fontWeight: FontWeight.bold,
-            ),
+ @override
+Widget build(BuildContext context) {
+  return Theme(
+    data: ThemeData(
+      useMaterial3: true,
+      scaffoldBackgroundColor: AppColors.colors['background'],
+    ),
+    child: Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Voices Unheard",
+          style: TextStyle(
+            color: AppColors.colors['accent2'],
+            fontWeight: FontWeight.bold,
           ),
-          backgroundColor: Colors.white,
-          elevation: 0,
         ),
-        body: RefreshIndicator(
-          color: AppColors.colors['accent2'],
-          onRefresh: _fetchPosts,
-          child: Column(
-            children: [
-              Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              AppColors.colors['accent2']!.withOpacity(0.1),
-                              AppColors.colors['accent1']!.withOpacity(0.1),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        child: TextButton.icon(
-                          icon: Icon(Icons.search, color: AppColors.colors['accent2']),
-                          label: Text(
-                            "Search stories...",
-                            style: TextStyle(color: AppColors.colors['primary']),
-                          ),
-                          onPressed: () {},
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 12),
-                    Container(
+        backgroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: RefreshIndicator(
+        color: AppColors.colors['accent2'],
+        onRefresh: _fetchPosts,
+        child: Column(
+          children: [
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            AppColors.colors['accent2']!,
-                            AppColors.colors['accent1']!,
+                            AppColors.colors['accent2']!.withOpacity(0.1),
+                            AppColors.colors['accent1']!.withOpacity(0.1),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(25),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.colors['accent2']!.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
                       ),
-                      child: IconButton(
-                        icon: Icon(Icons.add, color: Colors.white),
-                        onPressed: _createPost,
+                      child: TextField(
+                        controller: searchController,
+                        onChanged: _filterPosts,
+                        decoration: InputDecoration(
+                          hintText: "Search stories...",
+                          prefixIcon: Icon(Icons.search, color: AppColors.colors['accent2']),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(25),
+                            borderSide: BorderSide.none,
+                          ),
+                          filled: true,
+                          fillColor: Colors.transparent,
+                        ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: posts.isEmpty
-                    ? Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            AppColors.colors['accent2']!,
-                          ),
+                  ),
+                  SizedBox(width: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.colors['accent2']!,
+                          AppColors.colors['accent1']!,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(25),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.colors['accent2']!.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: Offset(0, 4),
                         ),
-                      )
-                    : ListView.builder(
-                        itemCount: posts.length,
-                        padding: EdgeInsets.all(12),
-                        itemBuilder: (context, index) {
-                          final post = posts[index];
-                          return Card(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
+                      ],
+                    ),
+                    child: IconButton(
+                      icon: Icon(Icons.add, color: Colors.white),
+                      onPressed: _createPost,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: filteredPosts.isEmpty && searchController.text.isNotEmpty
+                  ? Center(
+                      child: Text("No results found"),
+                    )
+                  : posts.isEmpty
+                      ? Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.colors['accent2']!,
                             ),
-                            margin: EdgeInsets.only(bottom: 16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ListTile(
-                                  leading: CircleAvatar(
-                                    backgroundColor: AppColors.colors['accent2'],
-                                    child: Icon(Icons.person, color: Colors.white),
-                                  ),
-                                  title: Text(
-                                    post['user_id'] ?? "Anonymous",
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  subtitle: Text(
-                                    "Shared a story",
-                                    style: TextStyle(color: AppColors.colors['primary']),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
-                                  ),
-                                  child: Text(
-                                    post['content'] ?? "",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      height: 1.4,
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: searchController.text.isEmpty
+                              ? posts.length
+                              : filteredPosts.length,
+                          padding: EdgeInsets.all(12),
+                          itemBuilder: (context, index) {
+                            final post = searchController.text.isEmpty
+                                ? posts[index]
+                                : filteredPosts[index];
+                            return Card(
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              margin: EdgeInsets.only(bottom: 16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ListTile(
+                                    leading: CircleAvatar(
+                                      backgroundColor: AppColors.colors['accent2'],
+                                      child: Icon(Icons.person, color: Colors.white),
+                                    ),
+                                    title: Text(
+                                      post['user_id'] ?? "Anonymous",
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    subtitle: Text(
+                                      "Shared a story",
+                                      style: TextStyle(color: AppColors.colors['primary']),
                                     ),
                                   ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.all(8),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                    children: [
-                                      _buildActionButton(
-                                        icon: Icons.favorite_border,
-                                        label: "${post['likes'] ?? 0}",
-                                        onPressed: () => _likePost(
-                                          post['id'],
-                                          post['likes'] ?? 0,
-                                        ),
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                    child: Text(
+                                      post['content'] ?? "",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        height: 1.4,
                                       ),
-                                      _buildActionButton(
-                                        icon: Icons.comment_outlined,
-                                        label: "Comment",
-                                        onPressed: () {},
-                                      ),
-                                      _buildActionButton(
-                                        icon: Icons.share_outlined,
-                                        label: "Share",
-                                        onPressed: () => _sharePost(post['content']),
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-              ),
-            ],
-          ),
-        ),
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.white, AppColors.colors['background']!],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+                                  Padding(
+                                    padding: EdgeInsets.all(8),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                      children: [
+                                        _buildActionButton(
+                                          icon: Icons.favorite_border,
+                                          label: "${post['likes'] ?? 0}",
+                                          onPressed: () => _likePost(
+                                            post['id'],
+                                            post['likes'] ?? 0,
+                                          ),
+                                        ),
+                                        _buildActionButton(
+                                          icon: Icons.comment_outlined,
+                                          label: "Comment",
+                                          onPressed: () {},
+                                        ),
+                                        _buildActionButton(
+                                          icon: Icons.share_outlined,
+                                          label: "Share",
+                                          onPressed: () => _sharePost(post['content']),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 8,
-                offset: Offset(0, -2),
-              ),
-            ],
+          ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.white, AppColors.colors['background']!],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-          child:BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart_rounded),
-            label: 'Product',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_alt_sharp),
-            label: 'Community',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.house_rounded),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.library_books_rounded),
-            label: 'Education',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: AppColors.colors['accent2'],
-        unselectedItemColor: AppColors.colors['primary'],
-        backgroundColor: Colors.white,
-        elevation: 5,
-        type: BottomNavigationBarType.fixed,
-        onTap: (index) {
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 8,
+              offset: Offset(0, -2),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.shopping_cart_rounded),
+              label: 'Product',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.people_alt_sharp),
+              label: 'Community',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.house_rounded),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.library_books_rounded),
+              label: 'Education',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings),
+              label: 'Settings',
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          selectedItemColor: AppColors.colors['accent2'],
+          unselectedItemColor: AppColors.colors['primary'],
+          backgroundColor: Colors.white,
+          elevation: 5,
+          type: BottomNavigationBarType.fixed,
+          onTap: (index) {
             Widget page;
             switch (index) {
               case 0:
@@ -421,16 +455,15 @@ class _HomePageState extends State<HomePage> {
                 pageBuilder: (context, animation, secondaryAnimation) => page,
                 transitionsBuilder: (context, animation, secondaryAnimation, child) {
                   return FadeTransition(opacity: animation, child: child);
-                 },
+                },
               ),
             );
           },
         ),
       ),
-    )
-    );
-  
-  }
+    ),
+  );
+}
 
   Widget _buildActionButton({
     required IconData icon,
