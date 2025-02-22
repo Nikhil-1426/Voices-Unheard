@@ -1,108 +1,146 @@
 import 'package:flutter/material.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
-import 'homepage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'community_page.dart';
+import 'product_page.dart';
+import 'home_page.dart';
+import 'education_page.dart';
+import 'settings_page.dart';
 
-class TermsAndConditionsPage extends StatelessWidget {
-  // Future<String?> _getUid() async {
-  //   final user = FirebaseAuth.instance.currentUser;
-  //   return user?.uid;
-  // }
+class TermsAndConditionsPage extends StatefulWidget {
+  const TermsAndConditionsPage({Key? key}) : super(key: key);
+
+  @override
+  _TermsAndConditionsPageState createState() => _TermsAndConditionsPageState();
+}
+
+class _TermsAndConditionsPageState extends State<TermsAndConditionsPage> {
+  int _selectedIndex = 4;
+
+  void _onItemTapped(int index) {
+    if (_selectedIndex == index) return;
+
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) =>  ProductPage()));
+        break;
+      case 1:
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) =>  CommunityPage()));
+        break;
+      case 2:
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => const HomePage()));
+        break;
+      case 3:
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) =>  EducationPage()));
+        break;
+      case 4:
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => const SettingsPage()));
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: true,
-        backgroundColor: Colors.teal,
-        flexibleSpace: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [ Colors.tealAccent,Color.fromARGB(255, 19, 152, 152)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-      ),
-        title: const Text(
-          "Terms and Conditions",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        centerTitle: true,
-        elevation: 4,
-        iconTheme: const IconThemeData(
-    color: Colors.white, // Set the back button color to white
-  ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.home),
-            onPressed: () async {
-              // final uid = await _getUid();
-              // if (uid != null && uid.isNotEmpty) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => HomePage()),
-                );
-              // } else {
-              //   Navigator.pushReplacementNamed(context, '/signin');
-              // }
-            },
-          ),
-        ],
-      ),
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.teal, Colors.tealAccent],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: Color(0xFFFFF1E6),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildWelcomeCard(),
-                  const SizedBox(height: 24),
-                  _buildSection(
-                    icon: Icons.gavel,
-                    title: "1. Acceptance of Terms",
-                    content: "By accessing or using our app, you agree to be bound by these terms and conditions. If you disagree with any part of these terms, you may not use our app.",
-                    gradient: [Colors.teal.shade50, Colors.white],
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      bottomRight: Radius.circular(30),
+          child: Column(
+            children: [
+              // Custom App Bar matching Help Centre
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color(0xFF6A3DE8), // Rich purple representing diversity
+                            Color(0xFF3B82F6), // Vibrant blue for inclusivity
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildSection(
-                    icon: Icons.person_outline,
-                    title: "2. User Account",
-                    content: "To use certain features of the app, you may be required to create a user account. You are responsible for maintaining the confidentiality of your account and password.",
-                    gradient: [Colors.white, Colors.teal.shade50],
-                    borderRadius: const BorderRadius.only(
-                      topRight: Radius.circular(30),
-                      bottomLeft: Radius.circular(30),
+                    const Expanded(
+                      child: Text(
+                        'Terms & Conditions',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF7209B7),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildSection(
-                    icon: Icons.info_outline,
-                    title: "3. App Usage",
-                    content: "Our app is designed to help you manage and organize your activities. While we strive to provide a reliable service, we cannot guarantee uninterrupted access or the absence of technical issues.",
-                    gradient: [Colors.teal.shade50, Colors.white],
-                  ),
-                  const SizedBox(height: 20),
-                ],
+                    const SizedBox(width: 48),
+                  ],
+                ),
               ),
-            ),
+
+              // Main Content
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildWelcomeCard(),
+                      const SizedBox(height: 30),
+                      ..._buildTermsSections(),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          backgroundColor: Colors.white,
+          selectedItemColor: const Color(0xFF6A3DE8),
+          unselectedItemColor: Colors.grey[400],
+          elevation: 0,
+          type: BottomNavigationBarType.fixed,
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_rounded), label: 'Product'),
+            BottomNavigationBarItem(icon: Icon(Icons.people_alt_rounded), label: 'Community'),
+            BottomNavigationBarItem(icon: Icon(Icons.house_rounded), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.library_books_rounded), label: 'Education'),
+            BottomNavigationBarItem(icon: Icon(Icons.settings_rounded), label: 'Settings'),
+          ],
         ),
       ),
     );
@@ -111,146 +149,149 @@ class TermsAndConditionsPage extends StatelessWidget {
   Widget _buildWelcomeCard() {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.teal.shade700,
-            Colors.teal.shade600,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withOpacity(0.08),
             blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -20,
-            top: -20,
-            child: Icon(
-              Icons.security,
-              size: 100,
-              color: Colors.white.withOpacity(0.1),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.verified_user,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    const Expanded(
-                      child: Text(
-                        "Welcome to TravelShield!",
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  "Before you begin your journey with us, please take a moment to review our terms and conditions.",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white.withOpacity(0.9),
-                    height: 1.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSection({
-    required IconData icon,
-    required String title,
-    required String content,
-    required List<Color> gradient,
-    BorderRadius? borderRadius,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: gradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: borderRadius ?? BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
+            spreadRadius: 0,
             offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.teal.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, color: Colors.teal[700]),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF4CAF50), Color(0xFF81C784)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.teal[700],
-                    ),
-                  ),
-                ),
-              ],
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(Icons.verified_user_rounded, color: Colors.white, size: 32),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
+            const Text(
+              "Welcome to Voices Unheard",
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2D3748),
+              ),
+            ),
+            const SizedBox(height: 12),
             Text(
-              content,
+              "Please review our terms and conditions before engaging with the platform.",
               style: TextStyle(
                 fontSize: 16,
+                color: Colors.grey[600],
                 height: 1.5,
-                color: Colors.grey[800],
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  List<Widget> _buildTermsSections() {
+    final sections = [
+      {
+        'icon': Icons.gavel_rounded,
+        'title': '1. Acceptance of Terms',
+        'content':
+            'By using Voices Unheard, you agree to abide by our terms and conditions. Violation of these terms may result in account suspension or removal from the platform.',
+      },
+      {
+        'icon': Icons.security_rounded,
+        'title': '2. Privacy & Security',
+        'content':
+            'We prioritize your privacy and security. Your personal data will not be shared without consent. We use encryption and security protocols to protect user information.',
+      },
+      {
+        'icon': Icons.people_rounded,
+        'title': '3. Community Guidelines',
+        'content':
+            'To maintain a respectful community, users must avoid hate speech, harassment, or any form of discrimination. Violations may lead to immediate action.',
+      },
+      {
+        'icon': Icons.article_rounded,
+        'title': '4. Content Responsibility',
+        'content':
+            'Users are responsible for the content they post. Any content violating our guidelines will be removed, and necessary action will be taken against repeat offenders.',
+      },
+      {
+        'icon': Icons.support_agent_rounded,
+        'title': '5. Contact & Support',
+        'content': 'For any queries or disputes, contact us at:\n📧 voicesunheard@gmail.com\n📞 +91 98765 43210',
+      },
+    ];
+
+    return sections.map((section) {
+      return Column(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 20,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF7E57C2), Color(0xFFB39DDB)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Icon(section['icon'] as IconData, color: Colors.white, size: 28),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    section['title'] as String,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2D3748),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    section['content'] as String,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      );
+    }).toList();
   }
 }

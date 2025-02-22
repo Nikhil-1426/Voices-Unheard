@@ -1,22 +1,108 @@
-import 'package:flutter/material.dart';
-import 'homepage.dart';
+// // import 'package:flutter/material.dart';
+// // import 'package:supabase_flutter/supabase_flutter.dart';
+// // import 'auth_page.dart';
 
-void main() {
-  runApp(const MyApp());
+// // void main() async {
+// //   WidgetsFlutterBinding.ensureInitialized();
+
+// //   await Supabase.initialize(
+// //     url: 'https://lznhdaoukmjiiemyvsfc.supabase.co',
+// //     anonKey:
+// //         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6bmhkYW91a21qaWllbXl2c2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAyMTEwODgsImV4cCI6MjA1NTc4NzA4OH0.MwG5z9Xf-edK8CoHOFjt2IKzOvhrywtY4i0ZfMjYnzI',
+// //   );
+
+// //   runApp(MyApp());
+// // }
+
+// // class MyApp extends StatelessWidget {
+// //   @override
+// //   Widget build(BuildContext context) {
+// //     return MaterialApp(
+// //       debugShowCheckedModeBanner: false,
+// //       home: AuthPage(),
+// //     );
+// //   }
+// // }
+// import 'package:flutter/material.dart';
+// import 'package:supabase_flutter/supabase_flutter.dart';
+// import 'auth_page.dart';
+// import 'home_page.dart';
+// import 'settings_page.dart';
+// import 'products_page.dart';
+// import 'community_page.dart';
+// import 'education_page.dart';
+
+// void main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+
+//   await Supabase.initialize(
+//     url: 'https://lznhdaoukmjiiemyvsfc.supabase.co',
+//     anonKey:
+//         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6bmhkYW91a21qaWllbXl2c2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAyMTEwODgsImV4cCI6MjA1NTc4NzA4OH0.MwG5z9Xf-edK8CoHOFjt2IKzOvhrywtY4i0ZfMjYnzI',
+//   );
+
+//   runApp(MyApp());
+// }
+
+// class MyApp extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       debugShowCheckedModeBanner: false,
+//       initialRoute: '/',
+//       routes: {
+//         '/': (context) => AuthPage(),         
+//         '/home': (context) => HomePage(),     
+//         '/settings': (context) => SettingsPage(),  
+//         '/products': (context) => ProductsPage(),  
+//         '/community': (context) => CommunityPage(),  
+//         '/education': (context) => EducationPage(),  
+//       },
+//     );
+//   }
+// }
+import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'auth_page.dart';
+import 'home_page.dart';
+import 'settings_page.dart';
+import 'product_page.dart';
+import 'community_page.dart';
+import 'education_page.dart';
+import 'help_centre_page.dart';
+import 'terms_and_conditions_page.dart';
+import 'about_us_page.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: 'https://lznhdaoukmjiiemyvsfc.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6bmhkYW91a21qaWllbXl2c2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAyMTEwODgsImV4cCI6MjA1NTc4NzA4OH0.MwG5z9Xf-edK8CoHOFjt2IKzOvhrywtY4i0ZfMjYnzI',
+  );
+
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Voices Unheard',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const HomePage(),
+      debugShowCheckedModeBanner: false,
+      initialRoute: '/',
+      routes: {
+        '/': (context) => AuthPage(),
+        '/home': (context) => HomePage(),
+        '/settings': (context) => SettingsPage(),
+        '/products': (context) => ProductPage(),
+        '/community': (context) => CommunityPage(),
+        '/education': (context) => EducationPage(),
+        '/helpCentre': (context) => HelpCentrePage(),
+        '/termsAndConditions': (context) => TermsAndConditionsPage(),
+        '/aboutUs': (context) => AboutUsPage(),
+      },
     );
   }
 }
+
