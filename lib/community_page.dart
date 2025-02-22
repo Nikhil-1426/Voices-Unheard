@@ -240,27 +240,6 @@ class _CommunitiesPageState extends State<CommunityPage> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart_rounded),
-            label: 'Product',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_alt_sharp),
-            label: 'Community',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.house_rounded),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.library_books_rounded),
-            label: 'Education',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
         currentIndex: _selectedIndex,
         selectedItemColor: AppColors.colors['accent2'],
         unselectedItemColor: AppColors.colors['primary'],
@@ -272,3 +251,4 @@ class _CommunitiesPageState extends State<CommunityPage> {
     );
   }
 }
+ 
