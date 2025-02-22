@@ -66,16 +66,6 @@ class _HomePageState extends State<HomePage> {
     }
   });
 }
-   void _onItemTapped(int index) {
-    if (index == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => EducationPage()),
-      );
-    } else {
-      setState(() => _selectedIndex = index);
-    }
-  }
 
   void _createPost() {
     showDialog(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:voices_unheard/userprofile_page.dart';
 import 'auth_page.dart';
 import 'education_page.dart';
 import 'community_page.dart';
@@ -38,6 +39,8 @@ class MyApp extends StatelessWidget {
         '/helpCentre': (context) => HelpCentrePage(),
         '/termsAndConditions': (context) => TermsAndConditionsPage(),
         '/aboutUs': (context) => AboutUsPage(),
+        '/userProfile': (context) => UserProfilePage(),
+
       },
     );
   }

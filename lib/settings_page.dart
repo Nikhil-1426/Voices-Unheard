@@ -69,6 +69,19 @@ class SettingsPage extends StatelessWidget {
                     children: [
                       const SizedBox(height: 20),
                       _buildSettingsCard(
+                        title: 'User Profile',
+                        subtitle: 'View and edit your profile details',
+                        icon: Icons.person_outline_rounded,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF6200EA), Color(0xFFB388FF)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        routeName: '/userProfile',
+                        context: context,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildSettingsCard(
                         title: 'Help Centre',
                         subtitle: 'Get support and answers to your questions',
                         icon: Icons.help_outline_rounded,
