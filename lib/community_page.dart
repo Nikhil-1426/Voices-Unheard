@@ -6,7 +6,6 @@ import 'home_page.dart';
 import 'education_page.dart';
 import 'settings_page.dart';
 
-
 class CommunityPage extends StatefulWidget {
   const CommunityPage({Key? key}) : super(key: key);
 
@@ -14,21 +13,34 @@ class CommunityPage extends StatefulWidget {
   _CommunitiesPageState createState() => _CommunitiesPageState();
 }
 
-class _CommunitiesPageState extends State<CommunityPage> {
+class _CommunitiesPageState extends State<CommunityPage> with SingleTickerProviderStateMixin {
   final SupabaseClient supabase = Supabase.instance.client;
   TextEditingController communityNameController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   TextEditingController requisitesController = TextEditingController();
   List<Map<String, dynamic>> communities = [];
   String? userId;
-  int _selectedIndex = 1; // Set the index for the Community page
+  int _selectedIndex = 1;
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
 
   @override
-  void initState() {
-    super.initState();
-    userId = supabase.auth.currentUser?.id;
-    _fetchCommunities();
-  }
+void initState() {
+  super.initState();
+  userId = supabase.auth.currentUser?.id;
+  _fetchCommunities();
+
+  _controller = AnimationController(
+    duration: const Duration(milliseconds: 800),
+    vsync: this,
+  );
+
+  _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    CurvedAnimation(parent: _controller, curve: Curves.easeIn),
+  );
+
+  _controller.forward();
+}
 
   Future<void> _fetchCommunities() async {
     try {
@@ -135,174 +147,358 @@ class _CommunitiesPageState extends State<CommunityPage> {
 }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Communities"),
-        backgroundColor: AppColors.colors['primary'],
-        elevation: 2,
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
+  void dispose() {
+    _controller.dispose();
+    communityNameController.dispose();
+    descriptionController.dispose();
+    requisitesController.dispose();
+    super.dispose();
+  }
+
+  void _showCreateCommunityDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.colors['background'],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            "Create New Community",
+            style: TextStyle(
+              color: AppColors.colors['accent2'],
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: SingleChildScrollView(
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(
+                _buildTextField(
                   controller: communityNameController,
-                  decoration: InputDecoration(
-                    labelText: "Community Name",
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.colors['primary']!),
-                    ),
-                  ),
+                  label: "Community Name",
+                  hint: "Enter community name",
+                  icon: Icons.group,
                 ),
-                const SizedBox(height: 10),
-                TextField(
+                SizedBox(height: 16),
+                _buildTextField(
                   controller: requisitesController,
-                  decoration: InputDecoration(
-                    labelText: "Requisites (Optional)",
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.colors['primary']!),
-                    ),
-                  ),
+                  label: "Requisites",
+                  hint: "Enter joining requirements",
+                  icon: Icons.check_circle_outline,
+                  maxLines: 2,
                 ),
-                const SizedBox(height: 10),
-                TextField(
+                SizedBox(height: 16),
+                _buildTextField(
                   controller: descriptionController,
-                  decoration: InputDecoration(
-                    labelText: "Description (Optional)",
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.colors['primary']!),
-                    ),
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.colors['accent2'],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                  ),
-                  onPressed: _createCommunity,
-                  child: const Text("Create Community", style: TextStyle(fontSize: 16)),
+                  label: "Description",
+                  hint: "Describe your community",
+                  icon: Icons.description,
+                  maxLines: 3,
                 ),
               ],
             ),
           ),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: _fetchCommunities,
-            child: ListView.builder(
-              itemCount: communities.length,
-              itemBuilder: (context, index) {
-                final community = communities[index];
-                return Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 3,
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(12),
-                    title: Text(
-                      community['name'],
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                    ),
-                    subtitle: Text("Admin: ${community['admin_id']}"),
-                    trailing: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.colors['primary'],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      onPressed: () => _requestToJoin(community['id'].toString()),
-                      child: const Text("Request to Join", style: TextStyle(color: Colors.white)),
-                    ),
-                  ),
-                );
-              },
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                "Cancel",
+                style: TextStyle(color: AppColors.colors['primary']),
+              ),
             ),
-          ),
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.colors['accent2']!,
+                    AppColors.colors['accent1']!,
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _createCommunity();
+                },
+                child: Text(
+                  "Create",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    int maxLines = 1,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 8,
+            offset: Offset(0, 2),
           ),
         ],
       ),
-     bottomNavigationBar: BottomNavigationBar(
-       items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart_rounded),
-            label: 'Product',
+      child: TextField(
+        controller: controller,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          prefixIcon: Icon(icon, color: AppColors.colors['accent2']),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide.none,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_alt_sharp),
-            label: 'Community',
+          filled: true,
+          fillColor: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Theme(
+      data: ThemeData(
+        useMaterial3: true,
+        scaffoldBackgroundColor: AppColors.colors['background'],
+      ),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            "Communities",
+            style: TextStyle(
+              color: AppColors.colors['accent2'],
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.house_rounded),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.library_books_rounded),
-            label: 'Education',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-        
-        selectedItemColor: AppColors.colors['accent2'],
-        unselectedItemColor: AppColors.colors['primary'],
-        backgroundColor: Colors.white,
-        currentIndex: 1,
-          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
           elevation: 0,
-        
-       
-        onTap: (index) {
-            Widget page;
-            switch (index) {
-              case 0:
-                page = ProductPage();
-                break;
-              case 1:
-                page = CommunityPage();
-                break;
-              case 2:
-                page = HomePage();
-                break;
-              case 3:
-                page = EducationPage();
-                break;
-              case 4:
-                page = SettingsPage();
-                break;
-              default:
-                return;
-            }
-            Navigator.pushReplacement(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) => page,
-                transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(opacity: animation, child: child);
-                 },
+        ),
+        body: RefreshIndicator(
+          color: AppColors.colors['accent2'],
+          onRefresh: _fetchCommunities,
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.colors['accent2']!.withOpacity(0.1),
+                            AppColors.colors['accent1']!.withOpacity(0.1),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Welcome to Our Communities",
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.colors['accent2'],
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            "Join existing communities or create your own to connect with others.",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: AppColors.colors['primary'],
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.colors['accent2']!,
+                                  AppColors.colors['accent1']!,
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(15),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.colors['accent2']!.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: TextButton.icon(
+                              icon: Icon(Icons.add, color: Colors.white),
+                              label: Text(
+                                "Create New Community",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              onPressed: _showCreateCommunityDialog,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final community = communities[index];
+                      return Card(
+                        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        elevation: 2,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.white,
+                                AppColors.colors['background']!.withOpacity(0.5),
+                              ],
+                            ),
+                          ),
+                          child: ExpansionTile(
+                            title: Text(
+                              community['name'],
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.colors['accent2'],
+                                fontSize: 18,
+                              ),
+                            ),
+                            subtitle: Text(
+                              community['description'] ?? "No description available",
+                              style: TextStyle(color: AppColors.colors['primary']),
+                            ),
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (community['requisites'] != null)
+                                      Text(
+                                        "Requirements: ${community['requisites']}",
+                                        style: TextStyle(
+                                          color: AppColors.colors['primary'],
+                                        ),
+                                      ),
+                                    SizedBox(height: 12),
+                                    Container(
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            AppColors.colors['accent2']!,
+                                            AppColors.colors['accent1']!,
+                                          ],
+                                        ),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: TextButton(
+                                        onPressed: () => _requestToJoin(community['id'].toString()),
+                                        child: Text(
+                                          "Request to Join",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    childCount: communities.length,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.white, AppColors.colors['background']!],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 8,
+                offset: Offset(0, -2),
               ),
-            );
-          },
-      )
+            ],
+          ),
+          child: BottomNavigationBar(
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.shopping_cart_rounded),
+                label: 'Product',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.people_alt_sharp),
+                label: 'Community',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.house_rounded),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.library_books_rounded),
+                label: 'Education',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.settings),
+                label: 'Settings',
+              ),
+            ],
+            currentIndex: _selectedIndex,
+            selectedItemColor: AppColors.colors['accent2'],
+            unselectedItemColor: AppColors.colors['primary'],
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            type: BottomNavigationBarType.fixed,
+            onTap: _onItemTapped,
+          ),
+        ),
+      ),
     );
   }
 }
- 
