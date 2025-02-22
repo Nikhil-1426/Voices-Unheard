@@ -2,6 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
+// Matching color palette from auth page
+class AppColors {
+  static const Map<String, Color> colors = {
+    'primary': Color(0xFF6B6B6B),
+    'secondary': Color(0xFF4ECDC4),
+    'accent1': Color(0xFFFFBE0B),
+    'accent2': Color(0xFF7209B7),
+    'accent3': Color(0xFF06D6A0),
+    'background': Color(0xFFFFF1E6),
+    'error': Color(0xFFFF4858),
+  };
+}
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -13,7 +26,7 @@ class _HomePageState extends State<HomePage> {
   final SupabaseClient supabase = Supabase.instance.client;
   TextEditingController postController = TextEditingController();
   List<Map<String, dynamic>> posts = [];
-  int _selectedIndex = 0;
+  int _selectedIndex = 2;
 
   @override
   void initState() {
@@ -21,7 +34,6 @@ class _HomePageState extends State<HomePage> {
     _fetchPosts();
   }
 
-  /// Fetch all posts from Supabase
   Future<void> _fetchPosts() async {
     try {
       final List<dynamic> response = await supabase
@@ -29,65 +41,122 @@ class _HomePageState extends State<HomePage> {
           .select()
           .order('timestamp', ascending: false);
 
-      debugPrint('Fetched posts: $response');
-
       setState(() {
         posts = response.map((post) => Map<String, dynamic>.from(post)).toList();
       });
     } catch (e) {
-      debugPrint('Error fetching posts: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error loading posts: ${e.toString()}'),
+          backgroundColor: AppColors.colors['error'],
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
-  /// Create a new post and save it in Supabase
   void _createPost() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Share a Thought"),
-          content: TextField(
-            controller: postController,
-            decoration: const InputDecoration(hintText: "What's on your mind?"),
+          backgroundColor: AppColors.colors['background'],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            "Share Your Voice",
+            style: TextStyle(
+              color: AppColors.colors['accent2'],
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: TextField(
+              controller: postController,
+              maxLines: 4,
+              decoration: InputDecoration(
+                hintText: "What's on your mind?",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: EdgeInsets.all(16),
+              ),
+            ),
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text("Cancel"),
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                "Cancel",
+                style: TextStyle(color: AppColors.colors['primary']),
+              ),
             ),
-            TextButton(
-              onPressed: () async {
-                if (postController.text.isNotEmpty) {
-                  final userId = supabase.auth.currentUser?.id;
-                  if (userId == null) {
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.colors['accent2']!,
+                    AppColors.colors['accent1']!,
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: TextButton(
+                onPressed: () async {
+                  if (postController.text.isNotEmpty) {
+                    final userId = supabase.auth.currentUser?.id;
+                    if (userId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Please log in first.'),
+                          backgroundColor: AppColors.colors['error'],
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                      return;
+                    }
+
+                    await supabase.from('posts').insert({
+                      'user_id': userId,
+                      'content': postController.text,
+                      'timestamp': DateTime.now().toIso8601String(),
+                      'likes': 0,
+                    });
+
+                    postController.clear();
+                    Navigator.of(context).pop();
+                    
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please log in first.')),
+                      SnackBar(
+                        content: Text('Your voice has been shared!'),
+                        backgroundColor: AppColors.colors['accent3'],
+                        behavior: SnackBarBehavior.floating,
+                      ),
                     );
-                    return;
+                    
+                    await _fetchPosts();
                   }
-
-                  await supabase.from('posts').insert({
-                    'user_id': userId,
-                    'content': postController.text,
-                    'timestamp': DateTime.now().toIso8601String(),
-                    'likes': 0,
-                  });
-
-                  postController.clear();
-                  Navigator.of(context).pop();
-
-                  /// ✅ Show success message
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Post created successfully!')),
-                  );
-
-                  /// ✅ Refresh posts
-                  await _fetchPosts();
-                }
-              },
-              child: const Text("Post"),
+                },
+                child: Text(
+                  "Share",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
             ),
           ],
         );
@@ -109,106 +178,247 @@ class _HomePageState extends State<HomePage> {
   void _onItemTapped(int index) {
     setState(() => _selectedIndex = index);
   }
-
+  
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Voices Unheard"), backgroundColor: Colors.deepPurple),
-      body: RefreshIndicator(
-        onRefresh: _fetchPosts, // ✅ Pull-to-refresh
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: ElevatedButton(onPressed: () {}, child: const Text("Search")),
-                  ),
-                  const SizedBox(width: 10),
-                  ElevatedButton(onPressed: _createPost, child: const Text("Create a Post")),
-                ],
-              ),
+    return Theme(
+      data: ThemeData(
+        useMaterial3: true,
+        scaffoldBackgroundColor: AppColors.colors['background'],
+      ),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            "Voices Unheard",
+            style: TextStyle(
+              color: AppColors.colors['accent2'],
+              fontWeight: FontWeight.bold,
             ),
-            Expanded(
-              child: posts.isEmpty
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView.builder(
-                      itemCount: posts.length,
-                      itemBuilder: (context, index) {
-                        final post = posts[index];
-                        return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 8.0),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Row(
-                                  children: [
-                                    const CircleAvatar(
-                                      backgroundColor: Colors.grey,
-                                      radius: 20,
-                                      child: Icon(Icons.person, color: Colors.white),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(post['user_id'] ?? "Unknown User", style: const TextStyle(fontWeight: FontWeight.bold)),
-                                          const Text("Just now", style: TextStyle(color: Colors.grey)),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Text(post['content'] ?? "No content", style: const TextStyle(fontSize: 16.0)),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.thumb_up_alt_outlined),
-                                      onPressed: () => _likePost(post['id'], post['likes'] ?? 0),
-                                    ),
-                                    IconButton(icon: const Icon(Icons.comment_outlined), onPressed: () {}),
-                                    IconButton(
-                                      icon: const Icon(Icons.share_outlined),
-                                      onPressed: () => _sharePost(post['content']),
-                                    ),
-                                  ],
-                                ),
-                              ),
+          ),
+          backgroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: RefreshIndicator(
+          color: AppColors.colors['accent2'],
+          onRefresh: _fetchPosts,
+          child: Column(
+            children: [
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.colors['accent2']!.withOpacity(0.1),
+                              AppColors.colors['accent1']!.withOpacity(0.1),
                             ],
                           ),
-                        );
-                      },
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        child: TextButton.icon(
+                          icon: Icon(Icons.search, color: AppColors.colors['accent2']),
+                          label: Text(
+                            "Search stories...",
+                            style: TextStyle(color: AppColors.colors['primary']),
+                          ),
+                          onPressed: () {},
+                        ),
+                      ),
                     ),
+                    SizedBox(width: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.colors['accent2']!,
+                            AppColors.colors['accent1']!,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(25),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.colors['accent2']!.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: Icon(Icons.add, color: Colors.white),
+                        onPressed: _createPost,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: posts.isEmpty
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.colors['accent2']!,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: posts.length,
+                        padding: EdgeInsets.all(12),
+                        itemBuilder: (context, index) {
+                          final post = posts[index];
+                          return Card(
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            margin: EdgeInsets.only(bottom: 16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor: AppColors.colors['accent2'],
+                                    child: Icon(Icons.person, color: Colors.white),
+                                  ),
+                                  title: Text(
+                                    post['user_id'] ?? "Anonymous",
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  subtitle: Text(
+                                    "Shared a story",
+                                    style: TextStyle(color: AppColors.colors['primary']),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  child: Text(
+                                    post['content'] ?? "",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.all(8),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    children: [
+                                      _buildActionButton(
+                                        icon: Icons.favorite_border,
+                                        label: "${post['likes'] ?? 0}",
+                                        onPressed: () => _likePost(
+                                          post['id'],
+                                          post['likes'] ?? 0,
+                                        ),
+                                      ),
+                                      _buildActionButton(
+                                        icon: Icons.comment_outlined,
+                                        label: "Comment",
+                                        onPressed: () {},
+                                      ),
+                                      _buildActionButton(
+                                        icon: Icons.share_outlined,
+                                        label: "Share",
+                                        onPressed: () => _sharePost(post['content']),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.white, AppColors.colors['background']!],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
             ),
-          ],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 8,
+                offset: Offset(0, -2),
+              ),
+            ],
+          ),
+          child: BottomNavigationBar(
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.shopping_cart_rounded),
+                label: 'Product',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.people_alt_sharp),
+                label: 'Community',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.house_rounded),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.library_books_rounded),
+                label: 'Education',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.settings),
+                label: 'Settings',
+              ),
+            ],
+            currentIndex: _selectedIndex,
+            selectedItemColor: AppColors.colors['accent2'],
+            unselectedItemColor: AppColors.colors['primary'],
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            type: BottomNavigationBarType.fixed,
+            onTap: _onItemTapped,
+          ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_rounded), label: 'Product'),
-          BottomNavigationBarItem(icon: Icon(Icons.people_alt_sharp), label: 'Community'),
-          BottomNavigationBarItem(icon: Icon(Icons.house_rounded), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.library_books_rounded), label: 'Education'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.deepPurple,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        onTap: _onItemTapped,
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    return TextButton.icon(
+      icon: Icon(
+        icon,
+        size: 20,
+        color: AppColors.colors['accent2'],
+      ),
+      label: Text(
+        label,
+        style: TextStyle(
+          color: AppColors.colors['primary'],
+        ),
+      ),
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        padding: EdgeInsets.symmetric(horizontal: 12),
       ),
     );
   }
