@@ -120,6 +120,11 @@ Join us in building a platform where every voice is heard, every story matters, 
 - Arnav - [Arnav Parekar](https://linkedin.com/in/arnav-parekar-b55786287/)
 - Nikhil - [Nikhil Parkar](https://www.linkedin.com/in/nikhil-parkar-49b600274/)
 
+## License
+This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+If a copy of the MPL was not distributed with this file, you can obtain one at https://mozilla.org/MPL/2.0/.
+
+
 ## Happy coding 💯
 
 Made with love ❤️
