@@ -629,3 +629,4 @@ Widget _buildInfoRow(String label, String value) {
   );
 }
 }
+
