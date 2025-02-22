@@ -1,22 +1,30 @@
 import 'package:flutter/material.dart';
-import 'homepage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'auth_page.dart';
+import 'education_page.dart';
 
-void main() {
-  runApp(const MyApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: 'https://lznhdaoukmjiiemyvsfc.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6bmhkYW91a21qaWllbXl2c2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAyMTEwODgsImV4cCI6MjA1NTc4NzA4OH0.MwG5z9Xf-edK8CoHOFjt2IKzOvhrywtY4i0ZfMjYnzI',
+  );
+
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Voices Unheard',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const HomePage(),
+      debugShowCheckedModeBanner: false,
+      initialRoute: '/',
+      routes: {
+        '/': (context) => AuthPage(),
+        '/education': (context) => EducationPage(),
+      },
     );
   }
 }
