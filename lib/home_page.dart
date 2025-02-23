@@ -197,6 +197,7 @@ Widget build(BuildContext context) {
     ),
     child: Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text(
           "Voices Unheard",
           style: TextStyle(
