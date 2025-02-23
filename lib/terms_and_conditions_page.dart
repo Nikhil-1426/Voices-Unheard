@@ -15,6 +15,7 @@ class TermsAndConditionsPage extends StatefulWidget {
 
 class _TermsAndConditionsPageState extends State<TermsAndConditionsPage> {
   final int _selectedIndex = 4;
+  
 
   @override
   Widget build(BuildContext context) {

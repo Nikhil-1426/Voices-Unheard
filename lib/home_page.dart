@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'education_page.dart';
@@ -6,6 +6,12 @@ import 'community_page.dart';
 import 'product_page.dart';
 import 'settings_page.dart';
 import 'package:voices_unheard/app_colors.dart';
+import 'package:intl/intl.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+
+
 // Matching color palette from auth page
 
 class HomePage extends StatefulWidget {
@@ -22,6 +28,9 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController searchController = TextEditingController();
   List<Map<String, dynamic>> filteredPosts = [];
   List<Map<String, dynamic>> posts = [];
+  String? _base64Image;
+
+
   
   int _selectedIndex = 2;
 
@@ -30,26 +39,146 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _fetchPosts();
   }
+  
 
   Future<void> _fetchPosts() async {
-    try {
-      final List<dynamic> response = await supabase
-          .from('posts')
-          .select()
-          .order('timestamp', ascending: false);
+  try {
+    final List<dynamic> response = await supabase
+        .from('posts')
+        .select('id, user_id, user_name, content, timestamp, likes, image_url')
+        .order('timestamp', ascending: false);
 
+    if (mounted) {
       setState(() {
-        posts = response.map((post) => Map<String, dynamic>.from(post)).toList();
-        filteredPosts = posts; // Initially, filtered posts = all posts
+        posts = response.map((post) {
+          final postData = Map<String, dynamic>.from(post);
+
+          // Decode base64 image if available
+          if (postData['image_url'] != null && postData['image_url'].isNotEmpty) {
+            try {
+              postData['image_bytes'] = base64Decode(postData['image_url']);
+            } catch (e) {
+              postData['image_bytes'] = null; // Handle decoding errors
+            }
+          } else {
+            postData['image_bytes'] = null;
+          }
+
+          return postData;
+        }).toList();
+        filteredPosts = posts;
       });
-    } catch (e) {
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error loading posts: ${e.toString()}'),
+        backgroundColor: AppColors.colors['error'],
+      ),
+    );
+  }
+}
+
+
+Future<void> _addComment(int postId, String commentText) async {
+  if (commentText.isEmpty) return;
+
+  try {
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error loading posts: ${e.toString()}'),
+          content: Text('Please log in to comment.'),
           backgroundColor: AppColors.colors['error'],
           behavior: SnackBarBehavior.floating,
         ),
       );
+      return;
+    }
+final userProfile = await supabase
+    .from('profiles') // Fix incorrect table name
+    .select('name')
+    .eq('id', userId)
+    .single();
+
+final userName = userProfile['name'] ?? 'Anonymous';
+
+
+    await supabase.from('comments').insert({
+      'post_id': postId,
+      'user_id': userId,
+      'user_name': userName,
+      'comment': commentText,
+      'image_url':_base64Image,
+      'timestamp': DateTime.now().toIso8601String(),
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Comment added!'),
+        backgroundColor: AppColors.colors['accent3'],
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    _fetchPosts(); // Refresh the posts to show new comments
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Failed to add comment: ${e.toString()}'),
+        backgroundColor: AppColors.colors['error'],
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+}
+Future<void> _pickAndUploadImage() async {
+  final ImagePicker picker = ImagePicker();
+  final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+  if (image != null) {
+    final File imageFile = File(image.path);
+    final bytes = await imageFile.readAsBytes();
+    final String base64Image = base64Encode(bytes);
+
+    setState(() {
+      _base64Image = base64Image; // Store Base64 string
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Image selected! Ready to post.'),
+        backgroundColor: AppColors.colors['accent3'],
+      ),
+    );
+  }
+}
+
+
+
+
+
+
+  String _formatTimestamp(String? timestamp) {
+    if (timestamp == null) return 'Unknown time';
+    
+    try {
+      DateTime postTime = DateTime.parse(timestamp).toLocal();
+      Duration difference = DateTime.now().difference(postTime);
+
+      if (difference.inMinutes < 1) {
+        return 'Just now';
+      } else if (difference.inMinutes < 60) {
+        return '${difference.inMinutes} min ago';
+      } else if (difference.inHours < 24) {
+        return '${difference.inHours} hr ago';
+      } else if (difference.inDays < 7) {
+        return '${difference.inDays} days ago';
+      } else {
+        return DateFormat('MMM d, y HH:mm').format(postTime);
+      }
+    } catch (e) {
+      return 'Invalid date';
     }
   }
   void _filterPosts(String query) {
@@ -66,127 +195,176 @@ class _HomePageState extends State<HomePage> {
     }
   });
 }
+void _showCommentDialog(int postId) {
+  TextEditingController commentController = TextEditingController();
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text("Add a Comment"),
+        content: TextField(
+          controller: commentController,
+          decoration: InputDecoration(hintText: "Write a comment..."),
+        ),
+        actions: [
+          TextButton(
+            child: Text("Cancel"),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          TextButton(
+            child: Text("Post"),
+            onPressed: () {
+              _addComment(postId, commentController.text);
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
 
   void _createPost() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: AppColors.colors['background'],
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        backgroundColor: AppColors.colors['background'],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Text(
+          "Share Your Voice",
+          style: TextStyle(
+            color: AppColors.colors['accent2'],
+            fontWeight: FontWeight.bold,
           ),
-          title: Text(
-            "Share Your Voice",
-            style: TextStyle(
-              color: AppColors.colors['accent2'],
-              fontWeight: FontWeight.bold,
+        ),
+        content: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: TextField(
+            controller: postController,
+            maxLines: 4,
+            decoration: InputDecoration(
+              hintText: "What's on your mind?",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide.none,
+              ),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: EdgeInsets.all(16),
             ),
           ),
-          content: Container(
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.image, color: AppColors.colors['accent2']),
+            onPressed: _pickAndUploadImage,
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              "Cancel",
+              style: TextStyle(color: AppColors.colors['primary']),
+            ),
+          ),
+          Container(
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 8,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: TextField(
-              controller: postController,
-              maxLines: 4,
-              decoration: InputDecoration(
-                hintText: "What's on your mind?",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: EdgeInsets.all(16),
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.colors['accent2']!,
+                  AppColors.colors['accent1']!,
+                ],
               ),
+              borderRadius: BorderRadius.circular(10),
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                "Cancel",
-                style: TextStyle(color: AppColors.colors['primary']),
-              ),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.colors['accent2']!,
-                    AppColors.colors['accent1']!,
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: TextButton(
-                onPressed: () async {
-                  if (postController.text.isNotEmpty) {
-                    final userId = supabase.auth.currentUser?.id;
-                    if (userId == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Please log in first.'),
-                          backgroundColor: AppColors.colors['error'],
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                      return;
-                    }
-
-                    await supabase.from('posts').insert({
-                      'user_id': userId,
-                      'content': postController.text,
-                      'timestamp': DateTime.now().toIso8601String(),
-                      'likes': 0,
-                    });
-
-                    postController.clear();
-                    Navigator.of(context).pop();
-                    
+            child: TextButton(
+              onPressed: () async {
+                if (postController.text.isNotEmpty) {
+                  final userId = supabase.auth.currentUser?.id;
+                  if (userId == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Your voice has been shared!'),
-                        backgroundColor: AppColors.colors['accent3'],
+                        content: Text('Please log in first.'),
+                        backgroundColor: AppColors.colors['error'],
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
-                    
-                    await _fetchPosts();
+                    return;
                   }
-                },
-                child: Text(
-                  "Share",
-                  style: TextStyle(color: Colors.white),
-                ),
+
+                  final userProfile = await supabase
+                      .from('profiles')
+                      .select('name')
+                      .eq('id', userId)
+                      .single();
+
+                  final userName = userProfile['name'] ?? 'Anonymous';
+
+                  // Check if image is null before storing it
+                  String? imageToStore = _base64Image?.isNotEmpty == true ? _base64Image : null;
+
+                  await supabase.from('posts').insert({
+                    'user_id': userId,
+                    'user_name': userName,
+                    'content': postController.text,
+                    'image_url': imageToStore, // Store Base64 encoded image
+                    'timestamp': DateTime.now().toIso8601String(),
+                    'likes': 0,
+                  });
+
+                  postController.clear();
+                  _base64Image = null; // Reset image after posting
+                  Navigator.of(context).pop();
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Your voice has been shared!'),
+                      backgroundColor: AppColors.colors['accent3'],
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+
+                  await _fetchPosts();
+                }
+              },
+              child: Text(
+                "Share",
+                style: TextStyle(color: Colors.white),
               ),
             ),
-          ],
-        );
-      },
-    );
-  }
+          ),
+        ],
+      );
+    },
+  );
+}
 
-  /// Like a post
-  Future<void> _likePost(int postId, int currentLikes) async {
-    await supabase.from('posts').update({'likes': currentLikes + 1}).match({'id': postId});
-    _fetchPosts();
-  }
+/// Like a post
+Future<void> _likePost(int postId, int currentLikes) async {
+  await supabase.from('posts').update({'likes': currentLikes + 1}).match({'id': postId});
+  _fetchPosts();
+}
 
-  /// Share a post
-  void _sharePost(String content) {
-    Share.share(content);
-  }
- 
+/// Share a post
+void _sharePost(String content) {
+  Share.share(content);
+}
+
   
  @override
 Widget build(BuildContext context) {
@@ -197,7 +375,6 @@ Widget build(BuildContext context) {
     ),
     child: Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
         title: Text(
           "Voices Unheard",
           style: TextStyle(
@@ -308,63 +485,91 @@ Widget build(BuildContext context) {
                               ),
                               margin: EdgeInsets.only(bottom: 16),
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  ListTile(
-                                    leading: CircleAvatar(
-                                      backgroundColor: AppColors.colors['accent2'],
-                                      child: Icon(Icons.person, color: Colors.white),
-                                    ),
-                                    title: Text(
-                                      post['user_id'] ?? "Anonymous",
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                    subtitle: Text(
-                                      "Shared a story",
-                                      style: TextStyle(color: AppColors.colors['primary']),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 12,
-                                    ),
-                                    child: Text(
-                                      post['content'] ?? "",
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        height: 1.4,
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.all(8),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                      children: [
-                                        _buildActionButton(
-                                          icon: Icons.favorite_border,
-                                          label: "${post['likes'] ?? 0}",
-                                          onPressed: () => _likePost(
-                                            post['id'],
-                                            post['likes'] ?? 0,
-                                          ),
-                                        ),
-                                        _buildActionButton(
-                                          icon: Icons.comment_outlined,
-                                          label: "Comment",
-                                          onPressed: () {},
-                                        ),
-                                        _buildActionButton(
-                                          icon: Icons.share_outlined,
-                                          label: "Share",
-                                          onPressed: () => _sharePost(post['content']),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    ListTile(
+      leading: CircleAvatar(
+        backgroundColor: AppColors.colors['accent2'],
+        child: Icon(Icons.person, color: Colors.white),
+      ),
+      title: Text(
+        post['user_name'] ?? "Anonymous",
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      subtitle: Text(
+        _formatTimestamp(post['timestamp']),
+        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+      ),
+    ),
+    Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Text(
+        post['content'] ?? "",
+        style: TextStyle(fontSize: 16, height: 1.4),
+      ),
+    ),
+    if (post['comments'] != null && post['comments'].isNotEmpty)
+      Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: post['comments'].map<Widget>((comment) {
+            return Padding(
+              padding: EdgeInsets.only(top: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.comment, size: 16, color: Colors.grey),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      "${comment['user_name']}: ${comment['comment']}",
+                      style: TextStyle(fontSize: 14, color: Colors.black87),
+                    ),
+                  ),
+                ],
+              ),
+            );
+         if (post['image_bytes'] != null) 
+  Padding(
+    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    child: Image.memory(
+      post['image_bytes'], // Display decoded image bytes
+      fit: BoxFit.cover,
+    ),
+  );
+
+
+
+
+          }).toList(),
+        ),
+      ),
+    Padding(
+      padding: EdgeInsets.all(8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildActionButton(
+            icon: Icons.favorite_border,
+            label: "${post['likes'] ?? 0}",
+            onPressed: () => _likePost(post['id'], post['likes'] ?? 0),
+          ),
+          _buildActionButton(
+            icon: Icons.comment_outlined,
+            label: "Comment",
+            onPressed: () => _showCommentDialog(post['id']),
+          ),
+          _buildActionButton(
+            icon: Icons.share_outlined,
+            label: "Share",
+            onPressed: () => _sharePost(post['content']),
+          ),
+        ],
+      ),
+    ),
+  ],
+)
                             );
                           },
                         ),
