@@ -6,7 +6,6 @@ import 'education_page.dart';
 import 'settings_page.dart';
 import 'package:voices_unheard/app_colors.dart';
 
-// Enum for managing tab state
 enum ProductPageTab { shop, sell, history, cart }
 
 class ProductPage extends StatefulWidget {
@@ -17,27 +16,23 @@ class ProductPage extends StatefulWidget {
 }
 
 class _ProductPageState extends State<ProductPage> {
-  // Initialize Supabase client
   final supabase = Supabase.instance.client;
-  
-  // Current selected tab
   ProductPageTab _currentTab = ProductPageTab.shop;
-  
-  // Loading states
   bool _isLoading = false;
   String? _error;
-
-  // Data holders
   List<Map<String, dynamic>> _products = [];
   List<Map<String, dynamic>> _cartItems = [];
   List<Map<String, dynamic>> _orderHistory = [];
-  
+  final int _selectedIndex = 0;
+
   @override
   void initState() {
     super.initState();
     _loadInitialData();
   }
 
+  // [Previous methods remain unchanged: _loadInitialData, _fetchProducts, _fetchCartItems,
+  // _fetchOrderHistory, _addToCart, _processDummyPayment]
   // Load initial data based on current tab
   Future<void> _loadInitialData() async {
     await _fetchProducts();
@@ -49,12 +44,12 @@ class _ProductPageState extends State<ProductPage> {
   Future<void> _fetchProducts() async {
     try {
       setState(() => _isLoading = true);
-      
+
       final response = await supabase
           .from('products')
-          .select('*')  // Simplified query
+          .select('*') // Simplified query
           .order('created_at', ascending: false);
-      
+
       setState(() {
         _products = List<Map<String, dynamic>>.from(response);
         _isLoading = false;
@@ -128,8 +123,8 @@ class _ProductPageState extends State<ProductPage> {
         // Update quantity
         await supabase
             .from('cart')
-            .update({'quantity': existingItem['quantity'] + quantity})
-            .eq('id', existingItem['id']);
+            .update({'quantity': existingItem['quantity'] + quantity}).eq(
+                'id', existingItem['id']);
       } else {
         // Add new item
         await supabase.from('cart').insert({
@@ -165,7 +160,8 @@ class _ProductPageState extends State<ProductPage> {
             'order_date': DateTime.now().toIso8601String(),
             'total_amount': totalAmount,
             'status': 'pending',
-            'delivery_date': DateTime.now().add(const Duration(days: 7)).toIso8601String(),
+            'delivery_date':
+                DateTime.now().add(const Duration(days: 7)).toIso8601String(),
             'address': '123 Sample Street', // In real app, get from user input
           })
           .select()
@@ -182,10 +178,7 @@ class _ProductPageState extends State<ProductPage> {
       }
 
       // Clear cart
-      await supabase
-          .from('cart')
-          .delete()
-          .eq('user_id', userId);
+      await supabase.from('cart').delete().eq('user_id', userId);
 
       // Refresh data
       await _fetchCartItems();
@@ -203,71 +196,363 @@ class _ProductPageState extends State<ProductPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Products"),
-        backgroundColor: Colors.blue,
+    return Theme(
+      data: ThemeData(
+        useMaterial3: true,
+        scaffoldBackgroundColor: AppColors.colors['background'],
       ),
-      body: Column(
-        children: [
-          // Tab selector
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: SegmentedButton<ProductPageTab>(
-              segments: const [
-                ButtonSegment(
-                  value: ProductPageTab.shop,
-                  label: Text('Shop'),
-                  icon: Icon(Icons.shop),
-                ),
-                ButtonSegment(
-                  value: ProductPageTab.sell,
-                  label: Text('Sell'),
-                  icon: Icon(Icons.sell),
-                ),
-                ButtonSegment(
-                  value: ProductPageTab.history,
-                  label: Text('History'),
-                  icon: Icon(Icons.history),
-                ),
-                ButtonSegment(
-                  value: ProductPageTab.cart,
-                  label: Text('Cart'),
-                  icon: Icon(Icons.shopping_cart),
-                ),
-              ],
-              selected: {_currentTab},
-              onSelectionChanged: (Set<ProductPageTab> newSelection) {
-                setState(() {
-                  _currentTab = newSelection.first;
-                });
-              },
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: Text(
+            "Products",
+            style: TextStyle(
+              color: AppColors.colors['accent2'],
+              fontWeight: FontWeight.bold,
             ),
           ),
-          // Error display
-          if (_error != null)
+          backgroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: Column(
+          children: [
             Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                _error!,
-                style: const TextStyle(color: Colors.red),
+              padding: const EdgeInsets.all(20.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 5,
+                          spreadRadius: 1,
+                          offset: Offset(0, 0),
+                        ),
+                      ],
+                      border: Border.all(color: AppColors.colors['primary']!.withOpacity(0.3)),
+                    ),
+                    child: SegmentedButton<ProductPageTab>(
+                      segments: const [
+                        ButtonSegment(
+                          value: ProductPageTab.shop,
+                          label: Text('Shop', style: TextStyle(fontSize: 10)),
+                          icon: Icon(Icons.shop, size: 9),
+                        ),
+                        ButtonSegment(
+                          value: ProductPageTab.sell,
+                          label: Text('Sell', style: TextStyle(fontSize: 10)),
+                          icon: Icon(Icons.sell, size: 12),
+                        ),
+                        ButtonSegment(
+                          value: ProductPageTab.history,
+                          label: Text('History', style: TextStyle(fontSize: 10)),
+                          icon: Icon(Icons.history, size: 10),
+                        ),
+                        ButtonSegment(
+                          value: ProductPageTab.cart,
+                          label: Text('Cart', style: TextStyle(fontSize: 10)),
+                          icon: Icon(Icons.shopping_cart, size: 12),
+                        ),
+                      ],
+                      selected: {_currentTab},
+                      onSelectionChanged: (Set<ProductPageTab> newSelection) {
+                        setState(() {
+                          _currentTab = newSelection.first;
+                        });
+                      },
+                      // style: ButtonStyle(
+                      //   padding: MaterialStateProperty.all(EdgeInsets.symmetric(vertical: 10, horizontal: 12)),
+                      //   backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                      //     (Set<MaterialState> states) {
+                      //       if (states.contains(MaterialState.selected)) {
+                      //         return AppColors.colors['accent2']!;
+                      //       }
+                      //       return Colors.transparent;
+                      //     },
+                      //   ),
+                      //   // foregroundColor: MaterialStateProperty.resolveWith<Color>(
+                      //   //   (Set<MaterialState> states) {
+                      //   //     if (states.contains(MaterialState.selected)) {
+                      //   //       return Colors.white;
+                      //   //     }
+                      //   //     return AppColors.colors['primary']!;
+                      //   //   },
+                      //   // ),
+                      //   // overlayColor: MaterialStateProperty.all(AppColors.colors['primary']!.withOpacity(0.1)),
+                      //   // shape: MaterialStateProperty.all(
+                      //   //   RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      //   // ),
+                      // ),
+                    ),
+                  ),
+                ),
               ),
             ),
-          // Loading indicator
-          if (_isLoading)
-            const CircularProgressIndicator()
-          else
-            // Content based on selected tab
-            Expanded(
-              child: _buildTabContent(),
+
+            if (_error != null)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  _error!,
+                  style: TextStyle(color: AppColors.colors['accent2']),
+                ),
+              ),
+            if (_isLoading)
+              CircularProgressIndicator(color: AppColors.colors['accent2'])
+            else
+              Expanded(
+                child: RefreshIndicator(
+                  color: AppColors.colors['accent2'],
+                  onRefresh: _loadInitialData,
+                  child: _buildTabContent(),
+                ),
+              ),
+          ],
+        ),
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.white, AppColors.colors['background']!],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
             ),
-        ],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 8,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
+          child: BottomNavigationBar(
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.shopping_cart_rounded),
+                label: 'Product',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.people_alt_sharp),
+                label: 'Community',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.house_rounded),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.library_books_rounded),
+                label: 'Education',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.settings),
+                label: 'Settings',
+              ),
+            ],
+            currentIndex: _selectedIndex,
+            selectedItemColor: AppColors.colors['accent2'],
+            unselectedItemColor: AppColors.colors['primary'],
+            backgroundColor: Colors.white,
+            elevation: 0,
+            type: BottomNavigationBarType.fixed,
+            onTap: (index) {
+              Widget page;
+              switch (index) {
+                case 0:
+                  page = const ProductPage();
+                  break;
+                case 1:
+                  page = const CommunityPage();
+                  break;
+                case 2:
+                  page = const HomePage();
+                  break;
+                case 3:
+                  page = EducationPage();
+                  break;
+                case 4:
+                  page = const SettingsPage();
+                  break;
+                default:
+                  return;
+              }
+              Navigator.pushReplacement(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => page,
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
+              );
+            },
+          ),
+        ),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(context),
     );
   }
 
-  Widget _buildTabContent() {
+  Widget _buildShopTab() {
+    if (_products.isEmpty) {
+      return Center(
+        child: Text(
+          'No products available',
+          style: TextStyle(color: AppColors.colors['primary']),
+        ),
+      );
+    }
+
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.75,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+      ),
+      itemCount: _products.length,
+      itemBuilder: (context, index) {
+        final product = _products[index];
+        return Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(20)),
+                child: Container(
+                  height: 120,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.colors['accent2']!.withOpacity(0.1),
+                        AppColors.colors['accent1']!.withOpacity(0.1),
+                      ],
+                    ),
+                  ),
+                  child: product['image_url'] != null
+                      ? Image.network(
+                          product['image_url'],
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.image_not_supported,
+                              color: AppColors.colors['primary'],
+                            );
+                          },
+                        )
+                      : Icon(
+                          Icons.image_not_supported,
+                          color: AppColors.colors['primary'],
+                        ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product['name'] ?? 'Unnamed Product',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 0),
+                    Text(
+                      '\$${product['price']?.toString() ?? '0'}',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: AppColors.colors['accent2'],
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildActionButton(
+                          icon: Icons.add_shopping_cart,
+                          label: 'Cart',
+                          onPressed: () => _addToCart(product['id']),
+                        ),
+                        _buildActionButton(
+                          icon: Icons.shopping_bag,
+                          label: 'Buy',
+                          onPressed: () => _processDummyPayment(
+                            double.parse(product['price'].toString()),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.colors['accent2']!,
+            AppColors.colors['accent1']!,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(15),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: Colors.white, size: 10),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+   Widget _buildTabContent() {
     switch (_currentTab) {
       case ProductPageTab.shop:
         return _buildShopTab();
@@ -279,160 +564,6 @@ class _ProductPageState extends State<ProductPage> {
         return _buildCartTab();
     }
   }
-
-  // Widget _buildShopTab() {
-  //   return GridView.builder(
-  //     padding: const EdgeInsets.all(8),
-  //     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-  //       crossAxisCount: 2,
-  //       childAspectRatio: 0.75,
-  //       crossAxisSpacing: 10,
-  //       mainAxisSpacing: 10,
-  //     ),
-  //     itemCount: _products.length,
-  //     itemBuilder: (context, index) {
-  //       final product = _products[index];
-  //       return Card(
-  //         child: Column(
-  //           crossAxisAlignment: CrossAxisAlignment.start,
-  //           children: [
-  //             Expanded(
-  //               child: Container(
-  //                 width: double.infinity,
-  //                 decoration: BoxDecoration(
-  //                   image: DecorationImage(
-  //                     image: NetworkImage(product['image_url']),
-  //                     fit: BoxFit.cover,
-  //                   ),
-  //                 ),
-  //               ),
-  //             ),
-  //             Padding(
-  //               padding: const EdgeInsets.all(8.0),
-  //               child: Column(
-  //                 crossAxisAlignment: CrossAxisAlignment.start,
-  //                 children: [
-  //                   Text(
-  //                     product['name'],
-  //                     style: const TextStyle(
-  //                       fontSize: 16,
-  //                       fontWeight: FontWeight.bold,
-  //                     ),
-  //                   ),
-  //                   Text(
-  //                     '\$${product['price']}',
-  //                     style: const TextStyle(
-  //                       fontSize: 14,
-  //                       color: Colors.green,
-  //                     ),
-  //                   ),
-  //                   Row(
-  //                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  //                     children: [
-  //                       ElevatedButton.icon(
-  //                         onPressed: () => _addToCart(product['id']),
-  //                         icon: const Icon(Icons.add_shopping_cart),
-  //                         label: const Text('Cart'),
-  //                       ),
-  //                       ElevatedButton.icon(
-  //                         onPressed: () => _processDummyPayment(product['price']),
-  //                         icon: const Icon(Icons.shopping_bag),
-  //                         label: const Text('Buy'),
-  //                       ),
-  //                     ],
-  //                   ),
-  //                 ],
-  //               ),
-  //             ),
-  //           ],
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
-  Widget _buildShopTab() {
-  if (_products.isEmpty) {
-    return const Center(
-      child: Text('No products available'),
-    );
-  }
-
-  return GridView.builder(
-    padding: const EdgeInsets.all(8),
-    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-      crossAxisCount: 2,
-      childAspectRatio: 0.75,
-      crossAxisSpacing: 10,
-      mainAxisSpacing: 10,
-    ),
-    itemCount: _products.length,
-    itemBuilder: (context, index) {
-      final product = _products[index];
-      return Card(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200], // Placeholder color
-                ),
-                child: product['image_url'] != null
-                    ? Image.network(
-                        product['image_url'],
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(Icons.image_not_supported);
-                        },
-                      )
-                    : const Icon(Icons.image_not_supported),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product['name'] ?? 'Unnamed Product',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    '\$${product['price']?.toString() ?? '0'}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.green,
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: () => _addToCart(product['id']),
-                        icon: const Icon(Icons.add_shopping_cart),
-                        label: const Text('Cart'),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () => _processDummyPayment(
-                            double.parse(product['price'].toString())),
-                        icon: const Icon(Icons.shopping_bag),
-                        label: const Text('Buy'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    },
-  );
-}
 
   Widget _buildSellTab() {
     // Form controllers
@@ -490,7 +621,7 @@ class _ProductPageState extends State<ProductPage> {
               border: OutlineInputBorder(),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: () async {
               try {
@@ -508,7 +639,7 @@ class _ProductPageState extends State<ProductPage> {
                 });
 
                 await _fetchProducts();
-                
+
                 // Clear form
                 nameController.clear();
                 descriptionController.clear();
@@ -538,6 +669,7 @@ class _ProductPageState extends State<ProductPage> {
       itemCount: _orderHistory.length,
       itemBuilder: (context, index) {
         final order = _orderHistory[index];
+              final orderItems = order['order_items'] ?? [];
         return Card(
           margin: const EdgeInsets.all(8),
           child: ExpansionTile(
@@ -552,7 +684,8 @@ class _ProductPageState extends State<ProductPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Total Amount: \$${order['total_amount']}'),
-                    Text('Delivery Date: ${DateTime.parse(order['delivery_date']).toString().substring(0, 16)}'),
+                    Text(
+                        'Delivery Date: ${DateTime.parse(order['delivery_date']).toString().substring(0, 16)}'),
                     Text('Shipping Address: ${order['address']}'),
                     const Divider(),
                     const Text(
@@ -560,6 +693,13 @@ class _ProductPageState extends State<ProductPage> {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     ...order['order_items'].map<Widget>((item) {
+                      final product = item['products'];
+                    if (product == null) {
+                      return const ListTile(
+                        title: Text('Product not found'),
+                        subtitle: Text('This product may have been removed'),
+                      );
+                    }
                       return ListTile(
                         title: Text(item['products']['name']),
                         subtitle: Text('Quantity: ${item['quantity']}'),
@@ -577,183 +717,214 @@ class _ProductPageState extends State<ProductPage> {
   }
 
   // Continuation of _buildCartTab() function
-    Widget _buildCartTab() {
-      double total = 0;
-      for (var item in _cartItems) {
-        total += (item['products']['price'] * item['quantity']);
-      }
+  Widget _buildCartTab() {
+  double total = 0;
+  for (var item in _cartItems) {
+    total += (item['products']['price'] * item['quantity']);
+  }
 
-      return Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: _cartItems.length,
-              itemBuilder: (context, index) {
-                final item = _cartItems[index];
-                final product = item['products'];
-                final itemTotal = product['price'] * item['quantity'];
+  return Column(
+    children: [
+      Expanded(
+        child: ListView.builder(
+          itemCount: _cartItems.length,
+          itemBuilder: (context, index) {
+            final item = _cartItems[index];
+            final product = item['products'];
+            final itemTotal = product['price'] * item['quantity'];
 
-                return Card(
-                  margin: const EdgeInsets.all(8),
-                  child: ListTile(
-                    leading: Image.network(
-                      product['image_url'],
-                      width: 50,
-                      height: 50,
+            return Card(
+              margin: const EdgeInsets.all(8),
+              child: ListTile(
+                leading: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Image.network(
+                      product['image_url'] ?? '',
                       fit: BoxFit.cover,
-                    ),
-                    title: Text(product['name']),
-                    subtitle: Text('\$${product['price']} x ${item['quantity']}'),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('\$${itemTotal.toStringAsFixed(2)}'),
-                        IconButton(
-                          icon: const Icon(Icons.remove_circle_outline),
-                          onPressed: () => _updateCartItemQuantity(item['id'], item['quantity'] - 1),
-                        ),
-                        Text('${item['quantity']}'),
-                        IconButton(
-                          icon: const Icon(Icons.add_circle_outline),
-                          onPressed: () => _updateCartItemQuantity(item['id'], item['quantity'] + 1),
-                        ),
-                      ],
+                      errorBuilder: (context, error, stackTrace) => Icon(
+                        Icons.image_not_supported,
+                        color: AppColors.colors['primary'],
+                      ),
                     ),
                   ),
-                );
-              },
-            ),
-          ),
-          Card(
-            margin: const EdgeInsets.all(8),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ),
+                title: Text(
+                  product['name'] ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: Text('\$${product['price']} x ${item['quantity']}'),
+                trailing: SizedBox(
+                  width: 120, // Fixed width for the trailing section
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
-                        'Total:',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                      IconButton(
+                        constraints: const BoxConstraints(
+                          minWidth: 30,
+                          maxWidth: 30,
+                        ),
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(Icons.remove_circle_outline, size: 20),
+                        onPressed: () => _updateCartItemQuantity(
+                          item['id'],
+                          item['quantity'] - 1,
                         ),
                       ),
                       Text(
-                        '\$${total.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
+                        '${item['quantity']}',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                      IconButton(
+                        constraints: const BoxConstraints(
+                          minWidth: 30,
+                          maxWidth: 30,
+                        ),
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(Icons.add_circle_outline, size: 20),
+                        onPressed: () => _updateCartItemQuantity(
+                          item['id'],
+                          item['quantity'] + 1,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: _cartItems.isEmpty
-                        ? null
-                        : () => _processDummyPayment(total),
-                    icon: const Icon(Icons.shopping_cart_checkout),
-                    label: const Text('Checkout'),
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 50),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+      Card(
+        margin: const EdgeInsets.all(8),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Total:',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    '\$${total.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.colors['accent2'],
                     ),
                   ),
                 ],
               ),
-            ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _cartItems.isEmpty
+                    ? null
+                    : () => _processDummyPayment(total),
+                icon: const Icon(Icons.shopping_cart_checkout),
+                label: const Text('Checkout'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+              ),
+            ],
           ),
-        ],
-      );
-    }
+        ),
+      ),
+    ],
+  );
+}
 
-    // Helper function to update cart item quantity
-    Future<void> _updateCartItemQuantity(String cartItemId, int newQuantity) async {
-      try {
-        if (newQuantity <= 0) {
-          // Remove item if quantity is 0 or less
-          await supabase
-              .from('cart')
-              .delete()
-              .eq('id', cartItemId);
-        } else {
-          // Update quantity
-          await supabase
-              .from('cart')
-              .update({'quantity': newQuantity})
-              .eq('id', cartItemId);
-        }
-        await _fetchCartItems();
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to update cart')),
-        );
+  // Helper function to update cart item quantity
+  Future<void> _updateCartItemQuantity(String cartItemId, int newQuantity) async {
+    try {
+      if (newQuantity <= 0) {
+        // Remove item if quantity is 0 or less
+        await supabase.from('cart').delete().eq('id', cartItemId);
+      } else {
+        // Update quantity
+        await supabase
+            .from('cart')
+            .update({'quantity': newQuantity}).eq('id', cartItemId);
       }
-    }
-
-    Widget _buildBottomNavigationBar(BuildContext context) {
-      return BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart_rounded),
-            label: 'Product',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_alt_sharp),
-            label: 'Community',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.house_rounded),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.library_books_rounded),
-            label: 'Education',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-        selectedItemColor: AppColors.colors['accent2'],
-        unselectedItemColor: AppColors.colors['primary'],
-        backgroundColor: Colors.white,
-        currentIndex: 0,
-        type: BottomNavigationBarType.fixed,
-        elevation: 0,
-        onTap: (index) {
-          Widget page;
-          switch (index) {
-            case 0:
-              page = const ProductPage();
-              break;
-            case 1:
-              page = const CommunityPage();
-              break;
-            case 2:
-              page = const HomePage();
-              break;
-            case 3:
-              page = EducationPage();
-              break;
-            case 4:
-              page = const SettingsPage();
-              break;
-            default:
-              return;
-          }
-          Navigator.pushReplacement(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) => page,
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-            ),
-          );
-        },
+      await _fetchCartItems();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to update cart')),
       );
     }
+  }
+
+  Widget _buildBottomNavigationBar(BuildContext context) {
+    return BottomNavigationBar(
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.shopping_cart_rounded),
+          label: 'Product',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.people_alt_sharp),
+          label: 'Community',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.house_rounded),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.library_books_rounded),
+          label: 'Education',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.settings),
+          label: 'Settings',
+        ),
+      ],
+      selectedItemColor: AppColors.colors['accent2'],
+      unselectedItemColor: AppColors.colors['primary'],
+      backgroundColor: Colors.white,
+      currentIndex: 0,
+      type: BottomNavigationBarType.fixed,
+      elevation: 0,
+      onTap: (index) {
+        Widget page;
+        switch (index) {
+          case 0:
+            page = const ProductPage();
+            break;
+          case 1:
+            page = const CommunityPage();
+            break;
+          case 2:
+            page = const HomePage();
+            break;
+          case 3:
+            page = EducationPage();
+            break;
+          case 4:
+            page = const SettingsPage();
+            break;
+          default:
+            return;
+        }
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => page,
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+          ),
+        );
+      },
+    );
+  }
 }

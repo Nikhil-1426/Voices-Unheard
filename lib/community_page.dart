@@ -5,6 +5,7 @@ import 'product_page.dart';
 import 'home_page.dart';
 import 'education_page.dart';
 import 'settings_page.dart';
+import 'community_detail_page.dart';
 
 class CommunityPage extends StatefulWidget {
   const CommunityPage({Key? key}) : super(key: key);
@@ -13,7 +14,8 @@ class CommunityPage extends StatefulWidget {
   _CommunitiesPageState createState() => _CommunitiesPageState();
 }
 
-class _CommunitiesPageState extends State<CommunityPage> with SingleTickerProviderStateMixin {
+class _CommunitiesPageState extends State<CommunityPage>
+    with SingleTickerProviderStateMixin {
   final SupabaseClient supabase = Supabase.instance.client;
   TextEditingController communityNameController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
@@ -25,28 +27,48 @@ class _CommunitiesPageState extends State<CommunityPage> with SingleTickerProvid
   late Animation<double> _fadeAnimation;
 
   @override
-void initState() {
-  super.initState();
-  userId = supabase.auth.currentUser?.id;
-  _fetchCommunities();
+  void initState() {
+    super.initState();
+    userId = supabase.auth.currentUser?.id;
+    _fetchCommunities();
 
-  _controller = AnimationController(
-    duration: const Duration(milliseconds: 800),
-    vsync: this,
-  );
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
 
-  _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-    CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-  );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
+    );
 
-  _controller.forward();
-}
+    _controller.forward();
+  }
+
+  List<Map<String, dynamic>> myCommunities = [];
+  List<Map<String, dynamic>> exploreCommunities = [];
 
   Future<void> _fetchCommunities() async {
     try {
       final response = await supabase.from('communities').select();
+      final userCommunitiesResponse = await supabase
+          .from('community_members')
+          .select('community_id')
+          .eq('user_id', userId!);
+
+      final userCommunityIds = userCommunitiesResponse
+          .map<String>((community) => community['community_id'].toString())
+          .toList();
+
       setState(() {
-        communities = List<Map<String, dynamic>>.from(response);
+        myCommunities = List<Map<String, dynamic>>.from(response)
+            .where((community) =>
+                userCommunityIds.contains(community['id'].toString()))
+            .toList();
+
+        exploreCommunities = List<Map<String, dynamic>>.from(response)
+            .where((community) =>
+                !userCommunityIds.contains(community['id'].toString()))
+            .toList();
       });
     } catch (e) {
       _showSnackBar('Error fetching communities: ${e.toString()}');
@@ -54,97 +76,97 @@ void initState() {
   }
 
   Future<void> _createCommunity() async {
-  if (communityNameController.text.isEmpty) return;
+    if (communityNameController.text.isEmpty) return;
 
     try {
-    final response = await supabase.from('communities').insert({
-      'name': communityNameController.text,
-      'description': descriptionController.text, 
-      'admin_id': supabase.auth.currentUser?.id,
-      'requisites': requisitesController.text,
-    }).select('id');
+      final response = await supabase.from('communities').insert({
+        'name': communityNameController.text,
+        'description': descriptionController.text,
+        'admin_id': supabase.auth.currentUser?.id,
+        'requisites': requisitesController.text,
+      }).select('id');
 
-    final communityId = response.first['id'];
+      final communityId = response.first['id'];
 
-    await supabase.from('community_members').insert({
-      'community_id': communityId,
-      'user_id': userId,
-      'role': 'admin',
-    });
+      await supabase.from('community_members').insert({
+        'community_id': communityId,
+        'user_id': userId,
+        'role': 'admin',
+      });
 
-    _showSnackBar('Community created successfully!');
-  } catch (e) {
-    _showSnackBar('Error creating community: ${e.toString()}');
-  } finally {
-    // ✅ Always clear input fields and refresh communities
-    communityNameController.text = "";
-    requisitesController.text = "";
-    descriptionController.text = "";
+      _showSnackBar('Community created successfully!');
+    } catch (e) {
+      _showSnackBar('Error creating community: ${e.toString()}');
+    } finally {
+      // ✅ Always clear input fields and refresh communities
+      communityNameController.text = "";
+      requisitesController.text = "";
+      descriptionController.text = "";
 
-    // ✅ Refresh the list without shifting focus
-    _fetchCommunities();
+      // ✅ Refresh the list without shifting focus
+      _fetchCommunities();
+    }
   }
-}
-
 
   Future<void> _requestToJoin(String communityId) async {
-  try {
-    await supabase.from('join_requests').insert({
-      'community_id': communityId,
-      'user_id': userId,
-      'role': 'member',
-    });
+    try {
+      await supabase.from('join_requests').insert({
+        'community_id': communityId,
+        'user_id': userId,
+        'role': 'member',
+      });
 
-    _showSnackBar('Request sent to admin!');
-  } catch (e) {
-    debugPrint('Supabase error: ${e.toString()}'); // Logs error to debug console
-    _showSnackBar('Error sending request: ${e.toString()}');
+      _showSnackBar('Request sent to admin!');
+    } catch (e) {
+      debugPrint(
+          'Supabase error: ${e.toString()}'); // Logs error to debug console
+      _showSnackBar('Error sending request: ${e.toString()}');
+    }
   }
-}
-
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _onItemTapped(int index) {
-  setState(() {
-    _selectedIndex = index;
-  });
+    setState(() {
+      _selectedIndex = index;
+    });
 
-  switch (index) {
-    case 0:
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => ProductPage()),
-      );
-      break;
-    case 1:
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => CommunityPage()),
-      );
-      break;
-    case 2:
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomePage()),
-      );
-      break;
-    case 3:
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => EducationPage()),
-      );
-      break;
-    case 4:
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => SettingsPage()),
-      );
-      break;
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => ProductPage()),
+        );
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => CommunityPage()),
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
+        break;
+      case 3:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => EducationPage()),
+        );
+        break;
+      case 4:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => SettingsPage()),
+        );
+        break;
+    }
   }
-}
 
   @override
   void dispose() {
@@ -281,6 +303,7 @@ void initState() {
       ),
       child: Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           title: Text(
             "Communities",
             style: TextStyle(
@@ -343,7 +366,8 @@ void initState() {
                               borderRadius: BorderRadius.circular(15),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.colors['accent2']!.withOpacity(0.3),
+                                  color: AppColors.colors['accent2']!
+                                      .withOpacity(0.3),
                                   blurRadius: 8,
                                   offset: Offset(0, 4),
                                 ),
@@ -367,84 +391,48 @@ void initState() {
                     ),
                   ),
                 ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Text(
+                      "My Communities",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.colors['accent2'],
+                      ),
+                    ),
+                  ),
+                ),
                 SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      final community = communities[index];
-                      return Card(
-                        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        elevation: 2,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.white,
-                                AppColors.colors['background']!.withOpacity(0.5),
-                              ],
-                            ),
-                          ),
-                          child: ExpansionTile(
-                            title: Text(
-                              community['name'],
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.colors['accent2'],
-                                fontSize: 18,
-                              ),
-                            ),
-                            subtitle: Text(
-                              community['description'] ?? "No description available",
-                              style: TextStyle(color: AppColors.colors['primary']),
-                            ),
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    if (community['requisites'] != null)
-                                      Text(
-                                        "Requirements: ${community['requisites']}",
-                                        style: TextStyle(
-                                          color: AppColors.colors['primary'],
-                                        ),
-                                      ),
-                                    SizedBox(height: 12),
-                                    Container(
-                                      width: double.infinity,
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            AppColors.colors['accent2']!,
-                                            AppColors.colors['accent1']!,
-                                          ],
-                                        ),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: TextButton(
-                                        onPressed: () => _requestToJoin(community['id'].toString()),
-                                        child: Text(
-                                          "Request to Join",
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
+                      final community = myCommunities[index];
+                      return _buildCommunityCard(community);
                     },
-                    childCount: communities.length,
+                    childCount: myCommunities.length,
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Text(
+                      "Explore New Communities",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.colors['accent2'],
+                      ),
+                    ),
+                  ),
+                ),
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final community = exploreCommunities[index];
+                      return _buildCommunityCard(community);
+                    },
+                    childCount: exploreCommunities.length,
                   ),
                 ),
               ],
@@ -497,6 +485,87 @@ void initState() {
             type: BottomNavigationBarType.fixed,
             onTap: _onItemTapped,
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCommunityCard(Map<String, dynamic> community) {
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      elevation: 2,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [
+              Colors.white,
+              AppColors.colors['background']!.withOpacity(0.5),
+            ],
+          ),
+        ),
+        child: ExpansionTile(
+          title: Text(
+            community['name'],
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppColors.colors['accent2'],
+              fontSize: 18,
+            ),
+          ),
+          subtitle: Text(
+            community['description'] ?? "No description available",
+            style: TextStyle(color: AppColors.colors['primary']),
+          ),
+          children: [
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (community['requisites'] != null)
+                    Text(
+                      "Requirements: ${community['requisites']}",
+                      style: TextStyle(
+                        color: AppColors.colors['primary'],
+                      ),
+                    ),
+                  SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.colors['accent2']!,
+                          AppColors.colors['accent1']!,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: TextButton(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CommunityDetailPage(
+                              communityId: community['id'].toString()),
+                        ),
+                      ),
+                      child: Text(
+                        "View Details",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

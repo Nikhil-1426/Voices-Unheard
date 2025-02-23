@@ -45,44 +45,92 @@ class EducationPage extends StatelessWidget {
       'details': 'Enhance your skills with various free and paid courses.',
     },
   ];
+
+
   @override
-  
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.colors['background'],
-      appBar: AppBar(
-        elevation: 0,
-        title: Text(
-          "Education Hub",
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: AppColors.colors['accent2'],
+    return Theme(
+      data: ThemeData(
+        useMaterial3: true,
+        scaffoldBackgroundColor: AppColors.colors['background'],
       ),
-      body: Column(
-        children: [
-          Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: Text(
+            "Education Hub",
+            style: TextStyle(
               color: AppColors.colors['accent2'],
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-            child: Text(
-              "Empowering through education and opportunities",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
+              fontWeight: FontWeight.bold,
             ),
           ),
-          
+          backgroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: Column(
+          children: [
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.colors['accent2']!.withOpacity(0.1),
+                    AppColors.colors['accent1']!.withOpacity(0.1),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppColors.colors['accent2']!.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.colors['accent2']!,
+                          AppColors.colors['accent1']!,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Icon(
+                      Icons.school_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Empowering through",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: AppColors.colors['primary'],
+                          ),
+                        ),
+                        Text(
+                          "Education & Opportunities",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.colors['accent2'],
+                            height: 1.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           Expanded(
             child: ListView.builder(
               padding: EdgeInsets.all(16),
@@ -178,6 +226,7 @@ class EducationPage extends StatelessWidget {
           },
         ),
       ),
+    ),
     );
   }
 
