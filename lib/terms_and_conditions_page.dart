@@ -25,22 +25,7 @@ class _TermsAndConditionsPageState extends State<TermsAndConditionsPage> {
       ),
       child: Scaffold(
         appBar: AppBar(
-          leading: Container(
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.colors['accent2']!,
-                  AppColors.colors['accent1']!,
-                ],
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
+          automaticallyImplyLeading: true,
           title: Text(
             "Terms & Conditions",
             style: TextStyle(
