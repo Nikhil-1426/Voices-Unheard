@@ -86,10 +86,10 @@ Buyers can track past orders, view delivery dates, and manage their purchase his
 Cart functionality includes quantity adjustments and a streamlined checkout process.**
 
 ## Additional Features:
-- **Secure Authentication**
-  - Uses supabase Authentication for secure sign-up and sign-in processes.
+- **Secure Authentication**-
+  -Uses supabase Authentication for secure sign-up and sign-in processes.
      
--**Community-Driven Donations**
+- **Community-Driven Donations**
   -Integrated payment system for seamless contributions to community causes.
 
 ## Tech Stack
