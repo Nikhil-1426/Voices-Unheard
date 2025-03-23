@@ -41,19 +41,32 @@ class _UserProfilePageState extends State<UserProfilePage>
     _fetchUserProfile();
     _animationController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 600),
+      duration: Duration(milliseconds: 800),
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+      CurvedAnimation(
+        parent: _animationController, 
+        curve: Curves.easeOut,
+      ),
     );
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.1),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController, 
+        curve: Curves.easeOut,
+      ),
+    );
   }
 
   @override
   void dispose() {
+    _nameController.dispose();
+    _genderController.dispose();
+    _ageController.dispose();
+    _phoneController.dispose();
+    _locationController.dispose();
     _animationController.dispose();
     super.dispose();
   }
@@ -83,14 +96,24 @@ class _UserProfilePageState extends State<UserProfilePage>
         }
         isLoading = false;
       });
-      _animationController.forward();
+      _runAnimation();
     } catch (e) {
       print("Error fetching profile: $e");
       setState(() => isLoading = false);
+      _showFeedback('Failed to load profile data', false);
     }
   }
 
+  void _runAnimation() {
+    _animationController.reset();
+    _animationController.forward();
+  }
+
   Future<void> _saveUserProfile() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
     setState(() => isLoading = true);
 
     final user = supabase.auth.currentUser;
@@ -103,6 +126,7 @@ class _UserProfilePageState extends State<UserProfilePage>
       'age': int.tryParse(_ageController.text) ?? 0,
       'phone': _phoneController.text.trim(),
       'location': _locationController.text.trim(),
+      'updated_at': DateTime.now().toIso8601String(),
     };
 
     try {
@@ -112,80 +136,227 @@ class _UserProfilePageState extends State<UserProfilePage>
         isEditing = false;
         isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Profile updated successfully'),
-          backgroundColor: AppColors.colors['accent2'],
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          margin: const EdgeInsets.all(16),
-        ),
-      );
+      _showFeedback('Profile updated successfully', true);
+      _runAnimation();
     } catch (e) {
       setState(() => isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Failed to update profile'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          margin: const EdgeInsets.all(16),
-        ),
-      );
+      _showFeedback('Failed to update profile', false);
     }
   }
 
-  Widget _buildInfoCard({
-    required String title,
-    required String value,
-    required IconData icon,
-  }) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
+  void _showFeedback(String message, bool isSuccess) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.colors['accent2']!,
-                    AppColors.colors['accent1']!,
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Icon(icon, color: Colors.white, size: 24),
+            Icon(
+              isSuccess ? Icons.check_circle : Icons.error,
+              color: Colors.white,
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: isSuccess ? AppColors.colors['accent2'] : Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  Widget _buildProfileHeader() {
+    final userEmail = supabase.auth.currentUser?.email ?? '';
+    
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Column(
+            children: [
+              Stack(
+                alignment: Alignment.bottomRight,
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                  Hero(
+                    tag: 'profile-avatar',
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.colors['accent1']!,
+                            AppColors.colors['accent2']!,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.white,
+                        child: Text(
+                          userProfile?['name']?.isNotEmpty == true
+                              ? userProfile!['name'].substring(0, 1).toUpperCase()
+                              : '?',
+                          style: TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.colors['accent2'],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    value,
+                  if (!isEditing)
+                    GestureDetector(
+                      onTap: () => setState(() => isEditing = true),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.colors['accent2'],
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.edit,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                userProfile?['name'] ?? 'Your Profile',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (userEmail.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    userEmail,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 16,
+                      color: AppColors.colors['primary']!.withOpacity(0.7),
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 8),
+              if (userProfile != null && userProfile!['updated_at'] != null)
+                Text(
+                  'Last updated: ${_formatDate(userProfile!['updated_at'])}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.colors['primary']!.withOpacity(0.5),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(String dateString) {
+    try {
+      final date = DateTime.parse(dateString);
+      return '${date.day}/${date.month}/${date.year}';
+    } catch (e) {
+      return 'Recently';
+    }
+  }
+
+  Widget _buildInfoSection() {
+    return SlideTransition(
+      position: _slideAnimation,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.person,
+                    color: AppColors.colors['accent2'],
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Personal Information",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                       color: AppColors.colors['primary'],
                     ),
                   ),
                 ],
               ),
+            ),
+            _buildInfoCard(
+              title: 'Name',
+              value: userProfile?['name'] ?? 'Not set',
+              icon: Icons.person_outline,
+            ),
+            const SizedBox(height: 12),
+            _buildInfoCard(
+              title: 'Gender',
+              value: userProfile?['gender'] ?? 'Not set',
+              icon: Icons.people_outline,
+            ),
+            const SizedBox(height: 12),
+            _buildInfoCard(
+              title: 'Age',
+              value: userProfile?['age']?.toString() ?? 'Not set',
+              icon: Icons.calendar_today_outlined,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.contact_phone,
+                    color: AppColors.colors['accent2'],
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Contact Information",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.colors['primary'],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            _buildInfoCard(
+              title: 'Phone',
+              value: userProfile?['phone'] ?? 'Not set',
+              icon: Icons.phone_outlined,
+            ),
+            const SizedBox(height: 12),
+            _buildInfoCard(
+              title: 'Location',
+              value: userProfile?['location'] ?? 'Not set',
+              icon: Icons.location_on_outlined,
             ),
           ],
         ),
@@ -193,91 +364,238 @@ class _UserProfilePageState extends State<UserProfilePage>
     );
   }
 
-  Widget _buildEditForm() {
+  Widget _buildInfoCard({
+    required String title,
+    required String value,
+    required IconData icon,
+  }) {
+    final bool isEmpty = value == 'Not set';
+    
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
+      child: InkWell(
+        onTap: () => setState(() => isEditing = true),
+        borderRadius: BorderRadius.circular(20),
+        splashColor: AppColors.colors['accent2']!.withOpacity(0.1),
+        highlightColor: AppColors.colors['accent2']!.withOpacity(0.05),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
             children: [
-              _buildEditField(
-                title: 'Name',
-                controller: _nameController,
-                icon: Icons.person_outline,
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isEmpty 
+                      ? [Colors.grey[400]!, Colors.grey[500]!]
+                      : [
+                        AppColors.colors['accent2']!,
+                        AppColors.colors['accent1']!,
+                      ],
+                  ),
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isEmpty 
+                        ? Colors.grey.withOpacity(0.2)
+                        : AppColors.colors['accent2']!.withOpacity(0.2),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(icon, color: Colors.white, size: 24),
               ),
-              _buildEditField(
-                title: 'Gender',
-                controller: _genderController,
-                icon: Icons.people_outline,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isEmpty 
+                          ? Colors.grey[500]
+                          : AppColors.colors['primary'],
+                        fontStyle: isEmpty ? FontStyle.italic : FontStyle.normal,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              _buildEditField(
-                title: 'Age',
-                controller: _ageController,
-                icon: Icons.calendar_today_outlined,
-                keyboardType: TextInputType.number,
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: isEmpty 
+                  ? Colors.grey[400]
+                  : AppColors.colors['primary']!.withOpacity(0.3),
               ),
-              _buildEditField(
-                title: 'Phone',
-                controller: _phoneController,
-                icon: Icons.phone_outlined,
-                keyboardType: TextInputType.phone,
-              ),
-              _buildEditField(
-                title: 'Location',
-                controller: _locationController,
-                icon: Icons.location_on_outlined,
-              ),
-              const SizedBox(height: 24),
-              Row(
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEditForm() {
+    return SlideTransition(
+      position: _slideAnimation,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => setState(() => isEditing = false),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey[100],
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.edit_note,
+                          color: AppColors.colors['accent2'],
                         ),
-                      ),
-                      child: Text(
-                        'Cancel',
-                        style: TextStyle(
-                          color: AppColors.colors['primary'],
-                          fontWeight: FontWeight.bold,
+                        const SizedBox(width: 8),
+                        Text(
+                          "Edit Profile Information",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.colors['primary'],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _saveUserProfile,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.colors['accent2'],
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
+                  _buildEditField(
+                    title: 'Name',
+                    controller: _nameController,
+                    icon: Icons.person_outline,
+                    hintText: 'Enter your full name',
+                  ),
+                  _buildEditField(
+                    title: 'Gender',
+                    controller: _genderController,
+                    icon: Icons.people_outline,
+                    hintText: 'Enter your gender',
+                  ),
+                  _buildEditField(
+                    title: 'Age',
+                    controller: _ageController,
+                    icon: Icons.calendar_today_outlined,
+                    keyboardType: TextInputType.number,
+                    hintText: 'Enter your age',
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your age';
+                      }
+                      if (int.tryParse(value) == null) {
+                        return 'Please enter a valid number';
+                      }
+                      return null;
+                    },
+                  ),
+                  _buildEditField(
+                    title: 'Phone',
+                    controller: _phoneController,
+                    icon: Icons.phone_outlined,
+                    keyboardType: TextInputType.phone,
+                    hintText: 'Enter your phone number',
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your phone number';
+                      }
+                      if (value.length < 10) {
+                        return 'Please enter a valid phone number';
+                      }
+                      return null;
+                    },
+                  ),
+                  _buildEditField(
+                    title: 'Location',
+                    controller: _locationController,
+                    icon: Icons.location_on_outlined,
+                    hintText: 'Enter your location',
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => setState(() => isEditing = false),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey[100],
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(
+                              color: AppColors.colors['primary'],
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                        elevation: 0,
                       ),
-                      child: const Text(
-                        'Save',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _saveUserProfile,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.colors['accent2'],
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Save',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -289,15 +607,24 @@ class _UserProfilePageState extends State<UserProfilePage>
     required TextEditingController controller,
     required IconData icon,
     TextInputType? keyboardType,
+    String? Function(String?)? validator,
+    String? hintText,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
+        validator: validator ?? (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter $title';
+          }
+          return null;
+        },
         style: const TextStyle(fontSize: 16),
         decoration: InputDecoration(
           labelText: title,
+          hintText: hintText,
           labelStyle: TextStyle(
             color: AppColors.colors['primary']!.withOpacity(0.6),
           ),
@@ -314,9 +641,152 @@ class _UserProfilePageState extends State<UserProfilePage>
               color: AppColors.colors['accent2']!,
             ),
           ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: const BorderSide(
+              color: Colors.red,
+            ),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: const BorderSide(
+              color: Colors.red,
+              width: 2,
+            ),
+          ),
           filled: true,
           fillColor: Colors.white,
         ),
+      ),
+    );
+  }
+
+  Widget _buildSkeletonLoading() {
+    return Column(
+      children: [
+        _buildSkeletonHeader(),
+        const SizedBox(height: 24),
+        _buildSkeletonSection("Personal Information"),
+        ...List.generate(3, (index) => _buildSkeletonCard()),
+        const SizedBox(height: 16),
+        _buildSkeletonSection("Contact Information"),
+        ...List.generate(2, (index) => _buildSkeletonCard()),
+      ],
+    );
+  }
+
+  Widget _buildSkeletonHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Column(
+        children: [
+          Container(
+            width: 108,
+            height: 108,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: 150,
+            height: 24,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: 200,
+            height: 16,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSkeletonSection(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      child: Row(
+        children: [
+          Container(
+            width: 18,
+            height: 18,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            width: 150,
+            height: 18,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(9),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSkeletonCard() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 80,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: 120,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(7),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -328,151 +798,141 @@ class _UserProfilePageState extends State<UserProfilePage>
         useMaterial3: true,
         scaffoldBackgroundColor: AppColors.colors['background'],
       ),
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            "User Profile",
-            style: TextStyle(
-              color: AppColors.colors['accent2'],
-              fontWeight: FontWeight.bold,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Adjust UI based on screen width
+          final bool isTablet = constraints.maxWidth > 600;
+          
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(
+                "User Profile",
+                style: TextStyle(
+                  color: AppColors.colors['accent2'],
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              backgroundColor: Colors.white,
+              elevation: 0,
+              centerTitle: false,
+              actions: [
+              ],
             ),
-          ),
-          backgroundColor: Colors.white,
-          elevation: 0,
-        ),
-        body: RefreshIndicator(
-          color: AppColors.colors['accent2'],
-          onRefresh: _fetchUserProfile,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              if (isLoading)
-                Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.colors['accent2'],
-                  ),
-                )
-              else if (isEditing)
-                _buildEditForm()
-              else
-                ...[
-                  _buildInfoCard(
-                    title: 'Name',
-                    value: userProfile?['name'] ?? 'Not set',
-                    icon: Icons.person_outline,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildInfoCard(
-                    title: 'Gender',
-                    value: userProfile?['gender'] ?? 'Not set',
-                    icon: Icons.people_outline,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildInfoCard(
-                    title: 'Age',
-                    value: userProfile?['age']?.toString() ?? 'Not set',
-                    icon: Icons.calendar_today_outlined,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildInfoCard(
-                    title: 'Phone',
-                    value: userProfile?['phone'] ?? 'Not set',
-                    icon: Icons.phone_outlined,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildInfoCard(
-                    title: 'Location',
-                    value: userProfile?['location'] ?? 'Not set',
-                    icon: Icons.location_on_outlined,
+            body: RefreshIndicator(
+              color: AppColors.colors['accent2'],
+              onRefresh: _fetchUserProfile,
+              child: SafeArea(
+                child: ListView(
+                  padding: EdgeInsets.all(isTablet ? 24.0 : 16.0),
+                  children: [
+                    if (isLoading)
+                      _buildSkeletonLoading()
+                    else ...[
+                      _buildProfileHeader(),
+                      SizedBox(height: isTablet ? 32.0 : 24.0),
+                      if (isEditing)
+                        _buildEditForm()
+                      else
+                        _buildInfoSection(),
+                    ],
+                    const SizedBox(height: 40),
+                  ],
+                ),
+              ),
+            ),
+            floatingActionButton: !isLoading && !isEditing
+                ? FloatingActionButton(
+                    onPressed: () => setState(() => isEditing = true),
+                    backgroundColor: AppColors.colors['accent2'],
+                    child: const Icon(Icons.edit, color: Colors.white),
+                    tooltip: 'Edit Profile',
+                  )
+                : null,
+            bottomNavigationBar: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.white, AppColors.colors['background']!],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 8,
+                    offset: const Offset(0, -2),
                   ),
                 ],
-            ],
-          ),
-        ),
-        floatingActionButton: !isLoading && !isEditing
-            ? FloatingActionButton(
-                onPressed: () => setState(() => isEditing = true),
-                backgroundColor: AppColors.colors['accent2'],
-                child: const Icon(Icons.edit, color: Colors.white),
-              )
-            : null,
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.white, AppColors.colors['background']!],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+              ),
+              child: BottomNavigationBar(
+                items: const [
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.shopping_cart_rounded),
+                    label: 'Product',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.people_alt_sharp),
+                    label: 'Community',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.house_rounded),
+                    label: 'Home',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.library_books_rounded),
+                    label: 'Education',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.settings),
+                    label: 'Settings',
+                  ),
+                ],
+                currentIndex: _selectedIndex,
+                selectedItemColor: AppColors.colors['accent2'],
+                unselectedItemColor: AppColors.colors['primary'],
+                backgroundColor: Colors.white,
+                elevation: 0,
+                type: BottomNavigationBarType.fixed,
+                showUnselectedLabels: true,
+                selectedFontSize: 12,
+                unselectedFontSize: 12,
+                onTap: (index) {
+                  if (index == _selectedIndex) return;
+                  
+                  Widget page;
+                  switch (index) {
+                    case 0:
+                      page = ProductPage();
+                      break;
+                    case 1:
+                      page = CommunityPage();
+                      break;
+                    case 2:
+                      page = HomePage();
+                      break;
+                    case 3:
+                      page = EducationPage();
+                      break;
+                    case 4:
+                      page = SettingsPage();
+                      break;
+                    default:
+                      return;
+                  }
+                  Navigator.pushReplacement(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) => page,
+                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                      transitionDuration: const Duration(milliseconds: 300),
+                    ),
+                  );
+                },
+              ),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 8,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: BottomNavigationBar(
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.shopping_cart_rounded),
-                label: 'Product',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.people_alt_sharp),
-                label: 'Community',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.house_rounded),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.library_books_rounded),
-                label: 'Education',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.settings),
-                label: 'Settings',
-              ),
-            ],
-            currentIndex: _selectedIndex,
-            selectedItemColor: AppColors.colors['accent2'],
-            unselectedItemColor: AppColors.colors['primary'],
-            backgroundColor: Colors.white,
-            elevation: 0,
-            type: BottomNavigationBarType.fixed,
-            onTap: (index) {
-              Widget page;
-              switch (index) {
-                case 0:
-                  page = ProductPage();
-                  break;
-                case 1:
-                  page = CommunityPage();
-                  break;
-                case 2:
-                  page = HomePage();
-                  break;
-                case 3:
-                  page = EducationPage();
-                  break;
-                case 4:
-                  page = SettingsPage();
-                  break;
-                default:
-                  return;
-              }
-              Navigator.pushReplacement(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) => page,
-                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-                ),
-              );
-            },
-          ),
-        ),
+          );
+        },
       ),
     );
   }

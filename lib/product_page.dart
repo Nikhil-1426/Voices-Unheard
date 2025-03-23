@@ -219,64 +219,9 @@ class _ProductPageState extends State<ProductPage> {
         ),
         body: Column(
           children: [
-            // Padding(
-            //   padding: const EdgeInsets.all(20.0),
-            //   child: Container(
-            //     decoration: BoxDecoration(
-            //       borderRadius: BorderRadius.circular(20),
-            //     ),
-            //     child: Padding(
-            //       padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
-            //       child: Container(
-            //         decoration: BoxDecoration(
-            //           color: Colors.white,
-            //           borderRadius: BorderRadius.circular(30),
-            //           boxShadow: [
-            //             BoxShadow(
-            //               color: Colors.black12,
-            //               blurRadius: 5,
-            //               spreadRadius: 1,
-            //               offset: Offset(0, 0),
-            //             ),
-            //           ],
-            //           border: Border.all(color: AppColors.colors['primary']!.withOpacity(0.3)),
-            //         ),
-            //         child: SegmentedButton<ProductPageTab>(
-            //           segments: const [
-            //             ButtonSegment(
-            //               value: ProductPageTab.shop,
-            //               label: Text('Shop', style: TextStyle(fontSize: 10)),
-            //               icon: Icon(Icons.shop, size: 9),
-            //             ),
-            //             ButtonSegment(
-            //               value: ProductPageTab.sell,
-            //               label: Text('Sell', style: TextStyle(fontSize: 10)),
-            //               icon: Icon(Icons.sell, size: 12),
-            //             ),
-            //             ButtonSegment(
-            //               value: ProductPageTab.history,
-            //               label: Text('History', style: TextStyle(fontSize: 10)),
-            //               icon: Icon(Icons.history, size: 10),
-            //             ),
-            //             ButtonSegment(
-            //               value: ProductPageTab.cart,
-            //               label: Text('Cart', style: TextStyle(fontSize: 10)),
-            //               icon: Icon(Icons.shopping_cart, size: 12),
-            //             ),
-            //           ],
-            //           selected: {_currentTab},
-            //           onSelectionChanged: (Set<ProductPageTab> newSelection) {
-            //             setState(() {
-            //               _currentTab = newSelection.first;
-            //             });
-            //           },
-            //         ),
-            //       ),
-            //     ),
-            //   ),
-            // ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -304,7 +249,8 @@ class _ProductPageState extends State<ProductPage> {
                       backgroundColor: MaterialStateProperty.resolveWith<Color>(
                         (states) {
                           if (states.contains(MaterialState.selected)) {
-                            return AppColors.colors['accent5']!.withOpacity(0.9);
+                            return AppColors.colors['accent5']!
+                                .withOpacity(0.9);
                           }
                           return Colors.white;
                         },
@@ -328,23 +274,31 @@ class _ProductPageState extends State<ProductPage> {
                     segments: [
                       ButtonSegment(
                         value: ProductPageTab.shop,
-                        label: const Text('Shop', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                        icon: const Icon(Icons.shop, size: 18),
+                        label: const Text('Shop',
+                            style: TextStyle(
+                                fontSize: 10, fontWeight: FontWeight.w600)),
+                        icon: const Icon(Icons.shop, size: 16),
                       ),
                       ButtonSegment(
                         value: ProductPageTab.sell,
-                        label: const Text('Sell', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                        icon: const Icon(Icons.sell, size: 18),
+                        label: const Text('Sell',
+                            style: TextStyle(
+                                fontSize: 10, fontWeight: FontWeight.w600)),
+                        icon: const Icon(Icons.sell, size: 16),
                       ),
                       ButtonSegment(
                         value: ProductPageTab.history,
-                        label: const Text('History', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                        icon: const Icon(Icons.history, size: 18),
+                        label: const Text('History',
+                            style: TextStyle(
+                                fontSize: 9, fontWeight: FontWeight.w600)),
+                        icon: const Icon(Icons.history, size: 14),
                       ),
                       ButtonSegment(
                         value: ProductPageTab.cart,
-                        label: const Text('Cart', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                        icon: const Icon(Icons.shopping_cart, size: 18),
+                        label: const Text('Cart',
+                            style: TextStyle(
+                                fontSize: 10, fontWeight: FontWeight.w600)),
+                        icon: const Icon(Icons.shopping_cart, size: 16),
                       ),
                     ],
                     selected: {_currentTab},
@@ -614,7 +568,7 @@ class _ProductPageState extends State<ProductPage> {
     );
   }
 
-   Widget _buildTabContent() {
+  Widget _buildTabContent() {
     switch (_currentTab) {
       case ProductPageTab.shop:
         return _buildShopTab();
@@ -731,7 +685,7 @@ class _ProductPageState extends State<ProductPage> {
       itemCount: _orderHistory.length,
       itemBuilder: (context, index) {
         final order = _orderHistory[index];
-              final orderItems = order['order_items'] ?? [];
+        final orderItems = order['order_items'] ?? [];
         return Card(
           margin: const EdgeInsets.all(8),
           child: ExpansionTile(
@@ -756,12 +710,12 @@ class _ProductPageState extends State<ProductPage> {
                     ),
                     ...order['order_items'].map<Widget>((item) {
                       final product = item['products'];
-                    if (product == null) {
-                      return const ListTile(
-                        title: Text('Product not found'),
-                        subtitle: Text('This product may have been removed'),
-                      );
-                    }
+                      if (product == null) {
+                        return const ListTile(
+                          title: Text('Product not found'),
+                          subtitle: Text('This product may have been removed'),
+                        );
+                      }
                       return ListTile(
                         title: Text(item['products']['name']),
                         subtitle: Text('Quantity: ${item['quantity']}'),
@@ -780,133 +734,135 @@ class _ProductPageState extends State<ProductPage> {
 
   // Continuation of _buildCartTab() function
   Widget _buildCartTab() {
-  double total = 0;
-  for (var item in _cartItems) {
-    total += (item['products']['price'] * item['quantity']);
-  }
+    double total = 0;
+    for (var item in _cartItems) {
+      total += (item['products']['price'] * item['quantity']);
+    }
 
-  return Column(
-    children: [
-      Expanded(
-        child: ListView.builder(
-          itemCount: _cartItems.length,
-          itemBuilder: (context, index) {
-            final item = _cartItems[index];
-            final product = item['products'];
-            final itemTotal = product['price'] * item['quantity'];
+    return Column(
+      children: [
+        Expanded(
+          child: ListView.builder(
+            itemCount: _cartItems.length,
+            itemBuilder: (context, index) {
+              final item = _cartItems[index];
+              final product = item['products'];
+              final itemTotal = product['price'] * item['quantity'];
 
-            return Card(
-              margin: const EdgeInsets.all(8),
-              child: ListTile(
-                leading: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: Image.network(
-                      product['image_url'] ?? '',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Icon(
-                        Icons.image_not_supported,
-                        color: AppColors.colors['primary'],
+              return Card(
+                margin: const EdgeInsets.all(8),
+                child: ListTile(
+                  leading: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: Image.network(
+                        product['image_url'] ?? '',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Icon(
+                          Icons.image_not_supported,
+                          color: AppColors.colors['primary'],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                title: Text(
-                  product['name'] ?? '',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                subtitle: Text('\$${product['price']} x ${item['quantity']}'),
-                trailing: SizedBox(
-                  width: 120, // Fixed width for the trailing section
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        constraints: const BoxConstraints(
-                          minWidth: 30,
-                          maxWidth: 30,
-                        ),
-                        padding: EdgeInsets.zero,
-                        icon: const Icon(Icons.remove_circle_outline, size: 20),
-                        onPressed: () => _updateCartItemQuantity(
-                          item['id'],
-                          item['quantity'] - 1,
-                        ),
-                      ),
-                      Text(
-                        '${item['quantity']}',
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                      IconButton(
-                        constraints: const BoxConstraints(
-                          minWidth: 30,
-                          maxWidth: 30,
-                        ),
-                        padding: EdgeInsets.zero,
-                        icon: const Icon(Icons.add_circle_outline, size: 20),
-                        onPressed: () => _updateCartItemQuantity(
-                          item['id'],
-                          item['quantity'] + 1,
-                        ),
-                      ),
-                    ],
+                  title: Text(
+                    product['name'] ?? '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-      Card(
-        margin: const EdgeInsets.all(8),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Total:',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                  subtitle: Text('\$${product['price']} x ${item['quantity']}'),
+                  trailing: SizedBox(
+                    width: 120, // Fixed width for the trailing section
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          constraints: const BoxConstraints(
+                            minWidth: 30,
+                            maxWidth: 30,
+                          ),
+                          padding: EdgeInsets.zero,
+                          icon:
+                              const Icon(Icons.remove_circle_outline, size: 20),
+                          onPressed: () => _updateCartItemQuantity(
+                            item['id'],
+                            item['quantity'] - 1,
+                          ),
+                        ),
+                        Text(
+                          '${item['quantity']}',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        IconButton(
+                          constraints: const BoxConstraints(
+                            minWidth: 30,
+                            maxWidth: 30,
+                          ),
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(Icons.add_circle_outline, size: 20),
+                          onPressed: () => _updateCartItemQuantity(
+                            item['id'],
+                            item['quantity'] + 1,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  Text(
-                    '\$${total.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.colors['accent2'],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: _cartItems.isEmpty
-                    ? null
-                    : () => _processDummyPayment(total),
-                icon: const Icon(Icons.shopping_cart_checkout),
-                label: const Text('Checkout'),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
                 ),
-              ),
-            ],
+              );
+            },
           ),
         ),
-      ),
-    ],
-  );
-}
+        Card(
+          margin: const EdgeInsets.all(8),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Total:',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      '\$${total.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.colors['accent2'],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: _cartItems.isEmpty
+                      ? null
+                      : () => _processDummyPayment(total),
+                  icon: const Icon(Icons.shopping_cart_checkout),
+                  label: const Text('Checkout'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 50),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   // Helper function to update cart item quantity
-  Future<void> _updateCartItemQuantity(String cartItemId, int newQuantity) async {
+  Future<void> _updateCartItemQuantity(
+      String cartItemId, int newQuantity) async {
     try {
       if (newQuantity <= 0) {
         // Remove item if quantity is 0 or less
