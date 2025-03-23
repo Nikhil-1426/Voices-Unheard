@@ -128,19 +128,35 @@ class _CommunitiesPageState extends State<CommunityPage> with TickerProviderStat
   }
 
   Future<void> _fetchCommunityMessages(String communityId) async {
-    try {
-      final response = await supabase
-          .from('community_messages')
-          .select('*, profiles:user_id(*)')
-          .eq('community_id', communityId)
-          .order('sent_at', ascending: true);
-      setState(() {
-        communityMessages = List<Map<String, dynamic>>.from(response);
-      });
-    } catch (e) {
-      _showSnackBar('Error fetching messages: ${e.toString()}');
+  try {
+    // Option 1: Fetch messages first, then fetch user details separately
+    final response = await supabase
+        .from('community_messages')
+        .select('*')
+        .eq('community_id', communityId)
+        .order('sent_at', ascending: true);
+    
+    List<Map<String, dynamic>> messages = List<Map<String, dynamic>>.from(response);
+    
+    // For each message, fetch the user profile
+    for (var message in messages) {
+      final userResponse = await supabase
+          .from('profiles')
+          .select()
+          .eq('id', message['user_id'])
+          .single();
+      
+      message['user_profile'] = userResponse;
     }
+    
+    setState(() {
+      communityMessages = messages;
+    });
+  } catch (e) {
+    _showSnackBar('Error fetching messages: ${e.toString()}');
+    print('Error details: ${e.toString()}');
   }
+}
 
   Future<void> _fetchCommunityPosts() async {
   try {
@@ -991,7 +1007,7 @@ Widget _buildStatItem({
 }
 
  Widget _buildMessageBubble(Map<String, dynamic> message, bool isMyMessage) {
-  final userName = message['profiles']?['email'] ?? 'Unknown User';
+  final userName = message['user_profile']?['email'] ?? 'Unknown User';
   return Padding(
     padding: EdgeInsets.only(bottom: 12),
     child: Column(
