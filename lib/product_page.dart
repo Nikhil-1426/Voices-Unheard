@@ -277,7 +277,7 @@ class _ProductPageState extends State<ProductPage> {
                         label: const Text('Shop',
                             style: TextStyle(
                                 fontSize: 10, fontWeight: FontWeight.w600)),
-                        icon: const Icon(Icons.shop, size: 16),
+                        icon: const Icon(Icons.shop, size: 14),
                       ),
                       ButtonSegment(
                         value: ProductPageTab.sell,

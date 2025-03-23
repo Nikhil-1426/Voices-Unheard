@@ -502,15 +502,10 @@ Future<void> _requestToJoin(String communityId) async {
                     Text(
                       "Create New Community",
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: AppColors.colors['accent2'],
                       ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context),
-                      color: AppColors.colors['primary'],
                     ),
                   ],
                 ),
