@@ -211,8 +211,11 @@ class _TermsAndConditionsPageState extends State<TermsAndConditionsPage> {
         'icon': Icons.support_agent_rounded,
         'title': '5. Contact & Support',
         'content':
-            'For any queries or disputes, contact us at:\n📧 voicesunheard@gmail.com\n📞 +91 98765 43210',
-      },
+          'For any queries or disputes, contact us at:\n'
+          '📧 voicesunheard@gmail.com\n'
+          '📞 +91 98765 43210\n'
+          'Our support team is available 24/7 to assist you.',
+    }
     ];
 
     return sections.map((section) {
