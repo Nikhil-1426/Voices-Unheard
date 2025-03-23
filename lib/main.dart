@@ -1,5 +1,9 @@
+// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+// If a copy of the MPL was not distributed with this file, You can obtain one at
+// https://mozilla.org/MPL/2.0/.
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:voices_unheard/userprofile_page.dart';
 import 'auth_page.dart';
 import 'education_page.dart';
 import 'community_page.dart';
@@ -38,6 +42,8 @@ class MyApp extends StatelessWidget {
         '/helpCentre': (context) => HelpCentrePage(),
         '/termsAndConditions': (context) => TermsAndConditionsPage(),
         '/aboutUs': (context) => AboutUsPage(),
+        '/userProfile': (context) => UserProfilePage(),
+
       },
     );
   }

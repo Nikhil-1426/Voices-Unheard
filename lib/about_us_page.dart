@@ -1,138 +1,175 @@
+// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+// If a copy of the MPL was not distributed with this file, You can obtain one at
+// https://mozilla.org/MPL/2.0/.
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'app_colors.dart';
 import 'community_page.dart';
-import 'product_page.dart';
-import 'home_page.dart';
 import 'education_page.dart';
+import 'home_page.dart';
+import 'product_page.dart';
 import 'settings_page.dart';
 
 class AboutUsPage extends StatelessWidget {
   const AboutUsPage({Key? key}) : super(key: key);
-
-  void _onItemTapped(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) =>  ProductPage()));
-        break;
-      case 1:
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) =>  CommunityPage()));
-        break;
-      case 2:
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => const HomePage()));
-        break;
-      case 3:
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) =>  EducationPage()));
-        break;
-      case 4:
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => SettingsPage()));
-        break;
-    }
-  }
+  final int _selectedIndex = 4;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF6A3DE8),
-              Color(0xFF3B82F6),
+    return Theme(
+      data: ThemeData(
+        useMaterial3: true,
+        scaffoldBackgroundColor: AppColors.colors['background'],
+      ),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            "About Us",
+            style: TextStyle(
+              color: AppColors.colors['accent2'],
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          backgroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: RefreshIndicator(
+          color: AppColors.colors['accent2'],
+          onRefresh: () async {},
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _buildWelcomeSection(),
+              const SizedBox(height: 16),
+              _buildTeamSection(),
+              const SizedBox(height: 16),
+              _buildMissionSection(),
+              const SizedBox(height: 16),
+              _buildValuesSection(),
+              const SizedBox(height: 16),
+              _buildContactSection(),
             ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
           ),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Custom App Bar
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Row(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ),
-                    const Expanded(
-                      child: Text(
-                        'About Us',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 48),
-                  ],
-                ),
-              ),
-
-              // Main Content
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildWelcomeSection(),
-                      const SizedBox(height: 30),
-                      _buildMissionSection(),
-                      const SizedBox(height: 24),
-                      _buildTeamSection(),
-                      const SizedBox(height: 24),
-                      _buildValuesSection(),
-                      const SizedBox(height: 24),
-                      _buildContactSection(),
-                    ],
-                  ),
-                ),
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.white, AppColors.colors['background']!],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 8,
+                offset: const Offset(0, -2),
               ),
             ],
+          ),
+          child: BottomNavigationBar(
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.shopping_cart_rounded),
+                label: 'Product',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.people_alt_sharp),
+                label: 'Community',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.house_rounded),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.library_books_rounded),
+                label: 'Education',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.settings),
+                label: 'Settings',
+              ),
+            ],
+            currentIndex: _selectedIndex,
+            selectedItemColor: AppColors.colors['accent2'],
+            unselectedItemColor: AppColors.colors['primary'],
+            backgroundColor: Colors.white,
+            elevation: 5,
+            type: BottomNavigationBarType.fixed,
+            onTap: (index) {
+              Widget page;
+              switch (index) {
+                case 0:
+                  page = ProductPage();
+                  break;
+                case 1:
+                  page = CommunityPage();
+                  break;
+                case 2:
+                  page = HomePage();
+                  break;
+                case 3:
+                  page = EducationPage();
+                  break;
+                case 4:
+                  page = SettingsPage();
+                  break;
+                default:
+                  return;
+              }
+              Navigator.pushReplacement(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => page,
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
+              );
+            },
           ),
         ),
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
+    );
+  }
+
+  Widget _buildSectionCard({
+    required String title,
+    required Widget content,
+    required IconData icon,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.colors['accent2']!,
+                    AppColors.colors['accent1']!,
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Icon(icon, color: Colors.white, size: 24),
             ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: 4,
-          onTap: (index) => _onItemTapped(context, index),
-          backgroundColor: Colors.white,
-          selectedItemColor: const Color(0xFF6A3DE8),
-          unselectedItemColor: Colors.grey[400],
-          elevation: 0,
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_rounded), label: 'Product'),
-            BottomNavigationBarItem(icon: Icon(Icons.people_alt_rounded), label: 'Community'),
-            BottomNavigationBarItem(icon: Icon(Icons.house_rounded), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.library_books_rounded), label: 'Education'),
-            BottomNavigationBarItem(icon: Icon(Icons.settings_rounded), label: 'Settings'),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            content,
           ],
         ),
       ),
@@ -140,133 +177,110 @@ class AboutUsPage extends StatelessWidget {
   }
 
   Widget _buildWelcomeSection() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            spreadRadius: 0,
-            offset: const Offset(0, 8),
-          ),
+    return _buildSectionCard(
+      title: "Welcome to Voices Unheard",
+      icon: Icons.diversity_3_rounded,
+      content: Text(
+        "We're dedicated to amplifying the voices of underrepresented communities and creating positive change through connection and support.",
+        style: TextStyle(
+          fontSize: 16,
+          color: AppColors.colors['primary'],
+          height: 1.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTeamSection() {
+    return _buildSectionCard(
+      title: "Meet Our Team",
+      icon: Icons.groups_rounded,
+      content: GridView.count(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: 2,
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        childAspectRatio: 1.1,
+        children: [
+          _buildTeamMember("Arnav", "Web Developer", Icons.code),
+          _buildTeamMember("Nikhil", "App Developer", Icons.design_services),
+          _buildTeamMember("Aditi A", "Frontend Lead", Icons.analytics),
+          _buildTeamMember("Aditi B", "UI/UX Designer", Icons.trending_up),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF7E57C2), Color(0xFFB39DDB)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(Icons.diversity_3_rounded, color: Colors.white, size: 32),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "Welcome to Voices Unheard",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF2D3748),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              "We're dedicated to amplifying the voices of underrepresented communities and creating positive change through connection and support.",
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-                height: 1.5,
-              ),
-            ),
-          ],
+    );
+  }
+
+  Widget _buildTeamMember(String name, String role, IconData icon) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.colors['background'],
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: AppColors.colors['accent2']!.withOpacity(0.2),
         ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.colors['accent2']!.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 24, color: AppColors.colors['accent2']),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            name,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.colors['accent2'],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            role,
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.colors['primary'],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildMissionSection() {
-    return _buildContentCard(
-      gradient: const LinearGradient(
-        colors: [Color(0xFF4CAF50), Color(0xFF81C784)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-      icon: Icons.lightbulb_outline_rounded,
+    return _buildSectionCard(
       title: "Our Mission",
-      content: "To empower underrepresented communities by providing a platform for their voices to be heard, stories to be shared, and experiences to be validated. We believe in creating a world where every voice matters and every story has the power to inspire change.",
-    );
-  }
-
-  Widget _buildTeamSection() {
-    return _buildContentCard(
-      gradient: const LinearGradient(
-        colors: [Color(0xFFFF7043), Color(0xFFFFAB91)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
+      icon: Icons.lightbulb_outline_rounded,
+      content: Text(
+        "To empower underrepresented communities by providing a platform for their voices to be heard, stories to be shared, and experiences to be validated. We believe in creating a world where every voice matters and every story has the power to inspire change.",
+        style: TextStyle(
+          fontSize: 16,
+          color: AppColors.colors['primary'],
+          height: 1.5,
+        ),
       ),
-      icon: Icons.groups_rounded,
-      title: "Our Team",
-      content: "We are a diverse group of passionate individuals committed to social justice and equality. Our team brings together expertise in technology, community building, and social advocacy to create meaningful impact.",
     );
   }
 
   Widget _buildValuesSection() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            spreadRadius: 0,
-            offset: const Offset(0, 8),
-          ),
+    return _buildSectionCard(
+      title: "Our Values",
+      icon: Icons.favorite_rounded,
+      content: Column(
+        children: [
+          _buildValueItem("Inclusivity", "Creating spaces where everyone belongs"),
+          _buildValueItem("Empowerment", "Supporting individual and collective growth"),
+          _buildValueItem("Authenticity", "Encouraging genuine expression"),
+          _buildValueItem("Community", "Building meaningful connections"),
         ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF3B82F6), Color(0xFF60A5FA)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(Icons.favorite_rounded, color: Colors.white, size: 32),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "Our Values",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF2D3748),
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildValueItem("Inclusivity", "Creating spaces where everyone belongs"),
-            _buildValueItem("Empowerment", "Supporting individual and collective growth"),
-            _buildValueItem("Authenticity", "Encouraging genuine expression"),
-            _buildValueItem("Community", "Building meaningful connections"),
-          ],
-        ),
       ),
     );
   }
@@ -279,8 +293,8 @@ class AboutUsPage extends StatelessWidget {
           Container(
             width: 8,
             height: 8,
-            decoration: const BoxDecoration(
-              color: Color(0xFF6A3DE8),
+            decoration: BoxDecoration(
+              color: AppColors.colors['accent2'],
               shape: BoxShape.circle,
             ),
           ),
@@ -294,7 +308,6 @@ class AboutUsPage extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2D3748),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -302,7 +315,7 @@ class AboutUsPage extends StatelessWidget {
                   description,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[600],
+                    color: AppColors.colors['primary'],
                   ),
                 ),
               ],
@@ -314,69 +327,15 @@ class AboutUsPage extends StatelessWidget {
   }
 
   Widget _buildContactSection() {
-    return _buildContentCard(
-      gradient: const LinearGradient(
-        colors: [Color(0xFF7E57C2), Color(0xFFB39DDB)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-      icon: Icons.contact_mail_rounded,
+    return _buildSectionCard(
       title: "Get in Touch",
-      content: "We'd love to hear from you! Reach out to us at:\n\n📧 voicesunheard@gmail.com\n📞 +91 98765 43210\n\nConnect with us on social media @VoicesUnheard",
-    );
-  }
-
-  Widget _buildContentCard({
-    required LinearGradient gradient,
-    required IconData icon,
-    required String title,
-    required String content,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            spreadRadius: 0,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: gradient,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Icon(icon, color: Colors.white, size: 32),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF2D3748),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              content,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-                height: 1.5,
-              ),
-            ),
-          ],
+      icon: Icons.contact_mail_rounded,
+      content: Text(
+        "We'd love to hear from you! Reach out to us at:\n\n📧 voicesunheard@gmail.com\n📞 +91 98765 43210\n\nConnect with us on social media @VoicesUnheard",
+        style: TextStyle(
+          fontSize: 16,
+          color: AppColors.colors['primary'],
+          height: 1.5,
         ),
       ),
     );

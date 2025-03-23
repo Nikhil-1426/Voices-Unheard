@@ -1,6 +1,10 @@
+// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+// If a copy of the MPL was not distributed with this file, You can obtain one at
+// https://mozilla.org/MPL/2.0/.
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'app_colors.dart';
 import 'home_page.dart';
 import 'community_page.dart';
 import 'product_page.dart';
@@ -15,199 +19,167 @@ class HelpCentrePage extends StatefulWidget {
 }
 
 class _HelpCentrePageState extends State<HelpCentrePage> {
-  int _selectedIndex = 4;
+  final int _selectedIndex = 4;
 
   Future<String?> _getUid() async {
     final user = Supabase.instance.client.auth.currentUser;
     return user?.id ?? (await SharedPreferences.getInstance()).getString('uid');
   }
 
-  void _onItemTapped(int index) {
-    if (_selectedIndex == index) return;
-
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => ProductPage()));
-        break;
-      case 1:
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) =>  CommunityPage()));
-        break;
-      case 2:
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => const HomePage()));
-        break;
-      case 3:
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) =>  EducationPage()));
-        break;
-      case 4:
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => SettingsPage()));
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        color: Color(0xFFFFF1E6),
-        child: SafeArea(
-          child: Column(
+    return Theme(
+      data: ThemeData(
+        useMaterial3: true,
+        scaffoldBackgroundColor: AppColors.colors['background'],
+      ),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            "Help Centre",
+            style: TextStyle(
+              color: AppColors.colors['accent2'],
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          backgroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: RefreshIndicator(
+          color: AppColors.colors['accent2'],
+          onRefresh: () async {},
+          child: ListView(
+            padding: const EdgeInsets.all(16),
             children: [
-              // Custom App Bar
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Row(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Color(0xFF6A3DE8), // Matching gradient from settings page
-                            Color(0xFF3B82F6),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ),
-                    const Expanded(
-                      child: Text(
-                        'Help Centre',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF7209B7),
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 48), // Balance for back button
-                  ],
-                ),
-              ),
-
-              // Main Content
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildWelcomeCard(),
-                      const SizedBox(height: 30),
-                      _buildSectionTitle("Common Questions"),
-                      const SizedBox(height: 20),
-                      _buildFAQSection(),
-                      const SizedBox(height: 30),
-                      _buildContactSupport(),
-                      const SizedBox(height: 20),
-                    ],
-                  ),
-                ),
-              ),
+              _buildWelcomeCard(),
+              const SizedBox(height: 16),
+              _buildSectionTitle("Common Questions"),
+              const SizedBox(height: 16),
+              _buildFAQSection(),
+              const SizedBox(height: 16),
+              _buildContactSupport(),
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.white, AppColors.colors['background']!],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
             ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          backgroundColor: Colors.white,
-          selectedItemColor: const Color(0xFF6A3DE8),
-          unselectedItemColor: Colors.grey[400],
-          elevation: 0,
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_rounded), label: 'Product'),
-            BottomNavigationBarItem(icon: Icon(Icons.people_alt_rounded), label: 'Community'),
-            BottomNavigationBarItem(icon: Icon(Icons.house_rounded), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.library_books_rounded), label: 'Education'),
-            BottomNavigationBarItem(icon: Icon(Icons.settings_rounded), label: 'Settings'),
-          ],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 8,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
+          child: BottomNavigationBar(
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.shopping_cart_rounded),
+                label: 'Product',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.people_alt_sharp),
+                label: 'Community',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.house_rounded),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.library_books_rounded),
+                label: 'Education',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.settings),
+                label: 'Settings',
+              ),
+            ],
+            currentIndex: _selectedIndex,
+            selectedItemColor: AppColors.colors['accent2'],
+            unselectedItemColor: AppColors.colors['primary'],
+            backgroundColor: Colors.white,
+            elevation: 0,
+            type: BottomNavigationBarType.fixed,
+            onTap: (index) {
+              Widget page;
+              switch (index) {
+                case 0:
+                  page = ProductPage();
+                  break;
+                case 1:
+                  page = CommunityPage();
+                  break;
+                case 2:
+                  page = HomePage();
+                  break;
+                case 3:
+                  page = EducationPage();
+                  break;
+                case 4:
+                  page = SettingsPage();
+                  break;
+                default:
+                  return;
+              }
+              Navigator.pushReplacement(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => page,
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
   }
 
   Widget _buildWelcomeCard() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-                          colors: [
-                            Color(0xFF6A3DE8), // Rich purple representing diversity
-                            Color(0xFF3B82F6), // Vibrant blue for inclusivity
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            spreadRadius: 0,
-            offset: const Offset(0, 8),
-          ),
-        ],
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF4CAF50), Color(0xFF81C784)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.colors['accent2']!,
+                    AppColors.colors['accent1']!,
+                  ],
                 ),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(15),
               ),
-              child: const Icon(Icons.support_agent_rounded, color: Colors.white, size: 32),
+              child: const Icon(Icons.support_agent_rounded, color: Colors.white, size: 24),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             const Text(
               "Welcome to Help Centre",
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 4),
             Text(
               "Find answers to common questions or reach out to our support team for assistance.",
               style: TextStyle(
-                fontSize: 16,
-                color: const Color.fromARGB(255, 193, 193, 193),
-                height: 1.5,
+                fontSize: 14,
+                color: AppColors.colors['primary'],
               ),
             ),
           ],
@@ -219,11 +191,10 @@ class _HelpCentrePageState extends State<HelpCentrePage> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
-        fontSize: 20,
+      style: TextStyle(
+        fontSize: 16,
         fontWeight: FontWeight.bold,
-        color: Colors.black,
-        letterSpacing: 0.5,
+        color: AppColors.colors['accent2'],
       ),
     );
   }
@@ -254,37 +225,40 @@ class _HelpCentrePageState extends State<HelpCentrePage> {
   }
 
   Widget _buildFAQCard(String question, String answer) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-                          colors: [
-                            Color(0xFF6A3DE8), // Rich purple representing diversity
-                            Color(0xFF3B82F6), // Vibrant blue for inclusivity
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            spreadRadius: 0,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          title: Text(
-            question,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.colors['accent2']!,
+                      AppColors.colors['accent1']!,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: const Icon(Icons.question_answer_rounded, color: Colors.white, size: 14),
+              ),
+              const SizedBox(width: 17),
+              Expanded(
+                child: Text(
+                  question,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
           ),
           children: [
             Padding(
@@ -293,8 +267,8 @@ class _HelpCentrePageState extends State<HelpCentrePage> {
                 answer,
                 style: TextStyle(
                   fontSize: 14,
-                  color: const Color.fromARGB(255, 225, 225, 225),
-                  height: 1.5,
+                  color: AppColors.colors['primary'],
+                  height: 3,
                 ),
               ),
             ),
@@ -305,74 +279,62 @@ class _HelpCentrePageState extends State<HelpCentrePage> {
   }
 
   Widget _buildContactSupport() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            spreadRadius: 0,
-            offset: const Offset(0, 8),
-          ),
-        ],
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(24),
-          onTap: () {
-            // Implement contact support functionality
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF7E57C2), Color(0xFFB39DDB)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Icon(Icons.chat_rounded, color: Colors.white, size: 28),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Need more help?",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2D3748),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        "Contact our support team",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                          height: 1.3,
-                        ),
-                      ),
+      child: InkWell(
+        onTap: () {
+          // Implement contact support functionality
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.colors['accent2']!,
+                      AppColors.colors['accent1']!,
                     ],
                   ),
+                  borderRadius: BorderRadius.circular(15),
                 ),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: Colors.grey[400],
-                  size: 18,
+                child: const Icon(Icons.chat_rounded, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Need more help?",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Contact our support team",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.colors['primary'],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: AppColors.colors['primary'],
+                size: 16,
+              ),
+            ],
           ),
         ),
       ),

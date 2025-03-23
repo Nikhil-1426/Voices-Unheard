@@ -1,3 +1,6 @@
+// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+// If a copy of the MPL was not distributed with this file, You can obtain one at
+// https://mozilla.org/MPL/2.0/.
 import 'package:flutter/material.dart';
 
 class AppColors {
@@ -8,6 +11,7 @@ class AppColors {
     'accent2': Color(0xFF6C5CE7),       // Soft purple
     'accent3': Color(0xFFFD79A8),       // Pink
     'accent4': Color(0xFFFEAA2B),       // Warm yellow
+    'accent5': Color.fromARGB(255, 138, 126, 232),
     'background': Color(0xFFF5F6FA),    // Light background
     'error': Color(0xFFFF4858),         // Error red
     'cardBg1': Color(0xFFE8F3F1),      // Light mint
