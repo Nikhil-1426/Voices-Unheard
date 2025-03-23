@@ -203,7 +203,7 @@ class AboutUsPage extends StatelessWidget {
         crossAxisSpacing: 16,
         childAspectRatio: 1.1,
         children: [
-          _buildTeamMember("Arnav", "Web Developer", Icons.code),
+          _buildTeamMember("Arnav", "Backend Developer", Icons.code),
           _buildTeamMember("Nikhil", "App Developer", Icons.design_services),
           _buildTeamMember("Aditi A", "Frontend Lead", Icons.analytics),
           _buildTeamMember("Aditi B", "UI/UX Designer", Icons.trending_up),
