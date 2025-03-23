@@ -34,6 +34,8 @@ class _CommunitiesPageState extends State<CommunityPage> with TickerProviderStat
   List<Map<String, dynamic>> userCommunities = [];
   List<Map<String, dynamic>> communityPosts = [];
   List<Map<String, dynamic>> communityMessages = [];
+  List<Map<String, dynamic>> userJoinRequests = [];
+  List<Map<String, dynamic>> adminJoinRequests = [];
   String userId = '';
   int _selectedIndex = 1;
   int _selectedTabIndex = 0;
@@ -47,7 +49,7 @@ class _CommunitiesPageState extends State<CommunityPage> with TickerProviderStat
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     userId = supabase.auth.currentUser?.id ?? '';
     _controller = AnimationController(
       duration: const Duration(milliseconds: 800),
@@ -88,13 +90,69 @@ class _CommunitiesPageState extends State<CommunityPage> with TickerProviderStat
     }
   }
 
-  Future<void> _initializeData() async {
-    await Future.wait([
-      _fetchCommunities(),
-      _fetchUserCommunities(),
-      _fetchCommunityPosts(),
-    ]);
+  // Add these to _initializeData() method
+Future<void> _initializeData() async {
+  await Future.wait([
+    _fetchCommunities(),
+    _fetchUserCommunities(),
+    _fetchCommunityPosts(),
+    _fetchUserJoinRequests(),
+    _fetchAdminJoinRequests(),
+  ]);
+}
+
+  
+  Future<void> _fetchUserJoinRequests() async {
+  try {
+    final response = await supabase
+        .from('join_requests')
+        .select('*, communities(*)')
+        .eq('user_id', userId)
+        .order('created_at', ascending: false);
+    
+    setState(() {
+      userJoinRequests = List<Map<String, dynamic>>.from(response);
+    });
+  } catch (e) {
+    _showSnackBar('Error fetching your join requests: ${e.toString()}');
   }
+}
+
+Future<void> _fetchAdminJoinRequests() async {
+  try {
+    // First get communities where the user is an admin
+    final adminCommunitiesResponse = await supabase
+        .from('community_members')
+        .select('community_id')
+        .eq('user_id', userId)
+        .eq('role', 'admin');
+    
+    List<Map<String, dynamic>> adminCommunities = List<Map<String, dynamic>>.from(adminCommunitiesResponse);
+    List<String> adminCommunityIds = adminCommunities.map((item) => item['community_id'].toString()).toList();
+    
+    if (adminCommunityIds.isEmpty) {
+      setState(() {
+        adminJoinRequests = [];
+      });
+      return;
+    }
+    
+    // Then fetch requests for those communities
+    final requestsResponse = await supabase
+    .from('join_requests')
+    .select('*, communities(*), profiles(*)')
+    .inFilter('community_id', adminCommunityIds)  // Changed from in_ to in
+    .eq('status', 'pending')
+    .order('created_at', ascending: false);
+    
+    setState(() {
+      adminJoinRequests = List<Map<String, dynamic>>.from(requestsResponse);
+    });
+  } catch (e) {
+    debugPrint('Error fetching admin requests: ${e.toString()}');
+    _showSnackBar('Error fetching requests: ${e.toString()}');
+  }
+}
 
   Future<void> _loadTabData(int index) async {
     switch (index) {
@@ -110,8 +168,49 @@ class _CommunitiesPageState extends State<CommunityPage> with TickerProviderStat
       case 2:
         await _fetchCommunityPosts();
         break;
+      case 3:
+        await _fetchUserJoinRequests();
+        await _fetchAdminJoinRequests();
+        break;
     }
   }
+
+  Future<void> _acceptJoinRequest(Map<String, dynamic> request) async {
+  try {
+    // Update request status
+    await supabase
+        .from('join_requests')
+        .update({'status': 'accepted'})
+        .eq('id', request['id']);
+    
+    // Add user to community members
+    await supabase.from('community_members').insert({
+      'community_id': request['community_id'],
+      'user_id': request['user_id'],
+      'role': request['role'] ?? 'member',
+    });
+    
+    _showSnackBar('Request accepted!');
+    _fetchAdminJoinRequests();
+  } catch (e) {
+    _showSnackBar('Error accepting request: ${e.toString()}');
+  }
+}
+
+  Future<void> _rejectJoinRequest(String requestId) async {
+    try {
+      await supabase
+          .from('join_requests')
+          .update({'status': 'rejected'})
+          .eq('id', requestId);
+      
+      _showSnackBar('Request rejected');
+      _fetchAdminJoinRequests();
+    } catch (e) {
+      _showSnackBar('Error rejecting request: ${e.toString()}');
+    }
+  }
+
 
   Future<void> _fetchUserCommunities() async {
     try {
@@ -317,21 +416,22 @@ class _CommunitiesPageState extends State<CommunityPage> with TickerProviderStat
     _fetchCommunities();
   }
 }
+Future<void> _requestToJoin(String communityId) async {
+  try {
+    await supabase.from('join_requests').insert({
+      'community_id': communityId,
+      'user_id': userId,
+      'role': 'member',
+      'status': 'pending', // Add this line
+    });
 
-    Future<void> _requestToJoin(String communityId) async {
-      try {
-        await supabase.from('join_requests').insert({
-          'community_id': communityId,
-          'user_id': userId,
-          'role': 'member',
-        });
-
-        _showSnackBar('Request sent to admin!');
-      } catch (e) {
-        debugPrint('Supabase error: ${e.toString()}'); // Logs error to debug console
-        _showSnackBar('Error sending request: ${e.toString()}');
-      }
-    }
+    _showSnackBar('Request sent to admin!');
+    _fetchUserJoinRequests(); // Also fetch user requests
+  } catch (e) {
+    debugPrint('Supabase error: ${e.toString()}');
+    _showSnackBar('Error sending request: ${e.toString()}');
+  }
+}
 
   void _showSnackBar(String message) {
     if (!mounted) return;
@@ -763,7 +863,7 @@ Widget _buildCommunityList() {
   return Container(
     color: Colors.grey[50],
     child: ListView.builder(
-      padding: EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(vertical: 1),
       itemCount: userCommunities.length,
       itemBuilder: (context, index) {
         final community = userCommunities[index]['communities'];
@@ -958,32 +1058,57 @@ Widget _buildStatItem({
   Widget _buildChatSection() {
   return Column(
     children: [
-      AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.colors['accent2']),
-          onPressed: () {
-            setState(() {
-              selectedCommunityId = null;
-            });
-          },
+      Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 2,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
-        title: Text(
-          'Community Chat',
-          style: TextStyle(
-            color: AppColors.colors['accent2'],
-            fontWeight: FontWeight.bold,
-          ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            InkWell(
+              onTap: () {
+                setState(() {
+                  selectedCommunityId = null;
+                });
+              },
+              child: Icon(Icons.arrow_back, color: AppColors.colors['accent2'], size: 22),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "Community Chat",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.colors['accent2'],
+                    ),
+                  ),
+                  Text(
+                    "Chat with your community members",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.colors['primary']?.withOpacity(0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.more_vert, color: AppColors.colors['accent2'], size: 22),
+          ],
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.more_vert, color: AppColors.colors['accent2']),
-            onPressed: () {
-              // Add chat options menu
-            },
-          ),
-        ],
       ),
       Expanded(
         child: Container(
@@ -1004,6 +1129,375 @@ Widget _buildStatItem({
       _buildMessageInput(),
     ],
   );
+}
+
+  Widget _buildNotificationsTab() {
+  return Column(
+    children: [
+      Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 2,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Notifications",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.colors['accent2'],
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              "Manage community requests and invitations",
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.colors['primary']?.withOpacity(0.7),
+              ),
+            ),
+          ],
+        ),
+      ),
+      Expanded(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionHeader("Admin Requests", adminJoinRequests.length),
+              _buildAdminRequestsList(),
+              _buildSectionHeader("Your Requests", userJoinRequests.length),
+              _buildUserRequestsList(),
+            ],
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+Widget _buildSectionHeader(String title, int count) {
+  return Container(
+    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    decoration: BoxDecoration(
+      color: Colors.grey[50],
+      border: Border(
+        bottom: BorderSide(color: Colors.grey[200]!, width: 1),
+      ),
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.colors['primary'],
+          ),
+        ),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: count > 0 ? AppColors.colors['accent2'] : Colors.grey[400],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            count.toString(),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildAdminRequestsList() {
+  if (adminJoinRequests.isEmpty) {
+    return _buildEmptyState("No pending requests to approve");
+  }
+
+  return ListView.builder(
+    shrinkWrap: true,
+    physics: NeverScrollableScrollPhysics(),
+    itemCount: adminJoinRequests.length,
+    itemBuilder: (context, index) {
+      final request = adminJoinRequests[index];
+      final communityName = request['communities']['name'] ?? 'Unknown Community';
+      final userName = request['profiles']['name'] ?? 'Unknown User';
+      final userEmail = request['profiles']['email'] ?? request['user_id'];
+      final timestamp = DateTime.parse(request['created_at']);
+      final timeAgo = _getTimeAgo(timestamp);
+      
+      return Card(
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: AppColors.colors['accent2']!.withOpacity(0.1),
+                    child: Text(
+                      userName[0].toUpperCase(),
+                      style: TextStyle(color: AppColors.colors['accent2']),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          userName,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Text(
+                          userEmail,
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    timeAgo,
+                    style: TextStyle(
+                      color: Colors.grey[500],
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12),
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[200]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.group,
+                      color: AppColors.colors['accent2'],
+                      size: 20,
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        "Wants to join \"$communityName\"",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  OutlinedButton(
+                    onPressed: () => _rejectJoinRequest(request['id']),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.grey[700],
+                      side: BorderSide(color: Colors.grey[300]!),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text("Decline"),
+                  ),
+                  SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: () => _acceptJoinRequest(request),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.colors['accent2'],
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text("Accept"),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Widget _buildUserRequestsList() {
+  if (userJoinRequests.isEmpty) {
+    return _buildEmptyState("No pending requests");
+  }
+
+  return ListView.builder(
+    shrinkWrap: true,
+    physics: NeverScrollableScrollPhysics(),
+    itemCount: userJoinRequests.length,
+    itemBuilder: (context, index) {
+      final request = userJoinRequests[index];
+      final communityName = request['communities']['name'] ?? 'Unknown Community';
+      final status = request['status'] ?? 'pending';
+      final timestamp = DateTime.parse(request['created_at']);
+      final timeAgo = _getTimeAgo(timestamp);
+      
+      Color statusColor;
+      IconData statusIcon;
+      
+      switch (status) {
+        case 'accepted':
+          statusColor = Colors.green;
+          statusIcon = Icons.check_circle;
+          break;
+        case 'rejected':
+          statusColor = Colors.red;
+          statusIcon = Icons.cancel;
+          break;
+        default:
+          statusColor = Colors.orange;
+          statusIcon = Icons.hourglass_empty;
+      }
+      
+      return Card(
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.colors['accent2']!.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.group,
+                  color: AppColors.colors['accent2'],
+                ),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      communityName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          statusIcon,
+                          size: 14,
+                          color: statusColor,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          status.substring(0, 1).toUpperCase() + status.substring(1),
+                          style: TextStyle(
+                            color: statusColor,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Text(
+                          " • $timeAgo",
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Widget _buildEmptyState(String message) {
+  return Container(
+    padding: EdgeInsets.all(32),
+    alignment: Alignment.center,
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.notifications_none,
+          size: 64,
+          color: Colors.grey[400],
+        ),
+        SizedBox(height: 16),
+        Text(
+          message,
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: 16,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    ),
+  );
+}
+
+String _getTimeAgo(DateTime dateTime) {
+  final difference = DateTime.now().difference(dateTime);
+  
+  if (difference.inDays > 7) {
+    return DateFormat('MMM d, y').format(dateTime);
+  } else if (difference.inDays > 0) {
+    return '${difference.inDays}d ago';
+  } else if (difference.inHours > 0) {
+    return '${difference.inHours}h ago';
+  } else if (difference.inMinutes > 0) {
+    return '${difference.inMinutes}m ago';
+  } else {
+    return 'Just now';
+  }
 }
 
  Widget _buildMessageBubble(Map<String, dynamic> message, bool isMyMessage) {
@@ -1662,9 +2156,14 @@ Widget _buildOptionButton({
               Tab(text: 'Join/Create'),
               Tab(text: 'Chat'),
               Tab(text: 'Feed'),
+              Tab(text: 'Notifications'),
             ],
             labelColor: AppColors.colors['accent2'],
             unselectedLabelColor: AppColors.colors['primary'],
+            labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.bold), // Smaller font for selected tab
+            unselectedLabelStyle: TextStyle(fontSize: 13),
+            padding: EdgeInsets.zero, // Remove default padding
+            labelPadding: EdgeInsets.symmetric(horizontal: 8),
           ),
         ),
         body: TabBarView(
@@ -1673,6 +2172,7 @@ Widget _buildOptionButton({
             _buildJoinCreateTab(),
             _buildChatTab(),
             _buildFeedTab(),
+            _buildNotificationsTab()
           ],
         ),
         bottomNavigationBar: Container(
