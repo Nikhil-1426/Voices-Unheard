@@ -131,7 +131,7 @@ class _CommunitiesPageState extends State<CommunityPage> with TickerProviderStat
     try {
       final response = await supabase
           .from('community_messages')
-          .select(', auth.users!inner()')
+          .select('*, profiles:user_id(*)')
           .eq('community_id', communityId)
           .order('sent_at', ascending: true);
       setState(() {
@@ -448,7 +448,7 @@ class _CommunitiesPageState extends State<CommunityPage> with TickerProviderStat
                       ),
                       child: TextButton(
                         onPressed: () {
-                          // Implement community creation
+                          _createCommunity();
                           Navigator.pop(context);
                         },
                         child: Text(
@@ -991,6 +991,7 @@ Widget _buildStatItem({
 }
 
  Widget _buildMessageBubble(Map<String, dynamic> message, bool isMyMessage) {
+  final userName = message['profiles']?['email'] ?? 'Unknown User';
   return Padding(
     padding: EdgeInsets.only(bottom: 12),
     child: Column(
@@ -1224,8 +1225,8 @@ Widget _buildFloatingActionButton() {
 Widget _buildPostCard(Map<String, dynamic> post) {
   final isEvent = post['type'] == 'event';
   final communityName = post['communities']?['name'] ?? 'Unknown Community';
-  final userName = post['users']?['name'] ?? 'Unknown User';
-  final userEmail = post['users']?['email'] ?? 'No Email';
+  final userName = post['profiles']?['name'] ?? 'Unknown User';
+  final userEmail = post['profiles']?['email'] ?? 'No Email';
 
   return Card(
     margin: EdgeInsets.all(AppStyles.smallSpacing),
