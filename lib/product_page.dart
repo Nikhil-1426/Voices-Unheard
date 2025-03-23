@@ -219,86 +219,6 @@ class _ProductPageState extends State<ProductPage> {
         ),
         body: Column(
           children: [
-            // Padding(
-            //   padding: const EdgeInsets.all(20.0),
-            //   child: Container(
-            //     decoration: BoxDecoration(
-            //       borderRadius: BorderRadius.circular(20),
-            //     ),
-            //     child: Padding(
-            //       padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
-            //       child: Container(
-            //         decoration: BoxDecoration(
-            //           color: Colors.white,
-            //           borderRadius: BorderRadius.circular(30),
-            //           boxShadow: [
-            //             BoxShadow(
-            //               color: Colors.black12,
-            //               blurRadius: 5,
-            //               spreadRadius: 1,
-            //               offset: Offset(0, 0),
-            //             ),
-            //           ],
-            //           border: Border.all(color: AppColors.colors['primary']!.withOpacity(0.3)),
-            //         ),
-            //         child: SegmentedButton<ProductPageTab>(
-            //           segments: const [
-            //             ButtonSegment(
-            //               value: ProductPageTab.shop,
-            //               label: Text('Shop', style: TextStyle(fontSize: 10)),
-            //               icon: Icon(Icons.shop, size: 9),
-            //             ),
-            //             ButtonSegment(
-            //               value: ProductPageTab.sell,
-            //               label: Text('Sell', style: TextStyle(fontSize: 10)),
-            //               icon: Icon(Icons.sell, size: 12),
-            //             ),
-            //             ButtonSegment(
-            //               value: ProductPageTab.history,
-            //               label: Text('History', style: TextStyle(fontSize: 10)),
-            //               icon: Icon(Icons.history, size: 10),
-            //             ),
-            //             ButtonSegment(
-            //               value: ProductPageTab.cart,
-            //               label: Text('Cart', style: TextStyle(fontSize: 10)),
-            //               icon: Icon(Icons.shopping_cart, size: 12),
-            //             ),
-            //           ],
-            //           selected: {_currentTab},
-            //           onSelectionChanged: (Set<ProductPageTab> newSelection) {
-            //             setState(() {
-            //               _currentTab = newSelection.first;
-            //             });
-            //           },
-            //           // style: ButtonStyle(
-            //           //   padding: MaterialStateProperty.all(EdgeInsets.symmetric(vertical: 10, horizontal: 12)),
-            //           //   backgroundColor: MaterialStateProperty.resolveWith<Color>(
-            //           //     (Set<MaterialState> states) {
-            //           //       if (states.contains(MaterialState.selected)) {
-            //           //         return AppColors.colors['accent2']!;
-            //           //       }
-            //           //       return Colors.transparent;
-            //           //     },
-            //           //   ),
-            //           //   // foregroundColor: MaterialStateProperty.resolveWith<Color>(
-            //           //   //   (Set<MaterialState> states) {
-            //           //   //     if (states.contains(MaterialState.selected)) {
-            //           //   //       return Colors.white;
-            //           //   //     }
-            //           //   //     return AppColors.colors['primary']!;
-            //           //   //   },
-            //           //   // ),
-            //           //   // overlayColor: MaterialStateProperty.all(AppColors.colors['primary']!.withOpacity(0.1)),
-            //           //   // shape: MaterialStateProperty.all(
-            //           //   //   RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            //           //   // ),
-            //           // ),
-            //         ),
-            //       ),
-            //     ),
-            //   ),
-            // ),
-
             Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -356,29 +276,29 @@ class _ProductPageState extends State<ProductPage> {
                         value: ProductPageTab.shop,
                         label: const Text('Shop',
                             style: TextStyle(
-                                fontSize: 13, fontWeight: FontWeight.w600)),
-                        icon: const Icon(Icons.shop, size: 18),
+                                fontSize: 10, fontWeight: FontWeight.w600)),
+                        icon: const Icon(Icons.shop, size: 16),
                       ),
                       ButtonSegment(
                         value: ProductPageTab.sell,
                         label: const Text('Sell',
                             style: TextStyle(
-                                fontSize: 13, fontWeight: FontWeight.w600)),
-                        icon: const Icon(Icons.sell, size: 18),
+                                fontSize: 10, fontWeight: FontWeight.w600)),
+                        icon: const Icon(Icons.sell, size: 16),
                       ),
                       ButtonSegment(
                         value: ProductPageTab.history,
                         label: const Text('History',
                             style: TextStyle(
-                                fontSize: 13, fontWeight: FontWeight.w600)),
-                        icon: const Icon(Icons.history, size: 18),
+                                fontSize: 9, fontWeight: FontWeight.w600)),
+                        icon: const Icon(Icons.history, size: 14),
                       ),
                       ButtonSegment(
                         value: ProductPageTab.cart,
                         label: const Text('Cart',
                             style: TextStyle(
-                                fontSize: 13, fontWeight: FontWeight.w600)),
-                        icon: const Icon(Icons.shopping_cart, size: 18),
+                                fontSize: 10, fontWeight: FontWeight.w600)),
+                        icon: const Icon(Icons.shopping_cart, size: 16),
                       ),
                     ],
                     selected: {_currentTab},

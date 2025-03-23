@@ -115,14 +115,14 @@ class EducationPage extends StatelessWidget {
                         Text(
                           "Empowering through",
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 15,
                             color: AppColors.colors['primary'],
                           ),
                         ),
                         Text(
                           "Education & Opportunities",
                           style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 17,
                             fontWeight: FontWeight.bold,
                             color: AppColors.colors['accent2'],
                             height: 1.2,
