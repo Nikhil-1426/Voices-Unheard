@@ -483,14 +483,15 @@ Future<void> _requestToJoin(String communityId) async {
     }
 
     void _showCreateCommunityDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Container(
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: SingleChildScrollView(  // Ensures scrollability when keyboard appears
+          child: Padding(
             padding: EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -577,10 +578,12 @@ Future<void> _requestToJoin(String communityId) async {
               ],
             ),
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
+
     Widget _buildTextField({
    required TextEditingController controller,
     required String label,
@@ -1909,10 +1912,10 @@ Widget _buildActionButton(IconData icon, String label) {
   return Expanded(
     child: TextButton.icon(
       onPressed: () {},
-      icon: Icon(icon, size: 20, color: Colors.grey[700]),
+      icon: Icon(icon, size: 15, color: Colors.grey[700]),
       label: Text(
         label,
-        style: TextStyle(color: Colors.grey[700], fontSize: 14),
+        style: TextStyle(color: Colors.grey[700], fontSize: 10),
       ),
     ),
   );
