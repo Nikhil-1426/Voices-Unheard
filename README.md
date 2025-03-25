@@ -1,5 +1,5 @@
 <center>
-<img src="http://readme-typing-svg.herokuapp.com?font=Fira+Code&pause=1000&width=435&lines=Welcome+to+Voices+Unheard!" />
+<img src="https://readme-typing-svg.herokuapp.com/?font=Times+New+Roman&weight=500&size=30&pause=1000&width=435&lines=Welcome+to+Voices+Unheard!" />
 </center>
 
 
