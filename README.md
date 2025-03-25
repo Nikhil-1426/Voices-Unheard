@@ -58,9 +58,10 @@ flutter run
   
 # Screenshots
 <pre>
-<img src = "https://github.com/Nikhil-1426/Voices Unheard /blob/main/assets/Loading%20Page.jpg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices Unheard /blob/main/assets/Sign%20Up%20Page.jpg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices Unheard /blob/main/assets/Home%20Page.jpg" width = "250">
-<img src = "https://github.com/Nikhil-1426/Voices Unheard /blob/main/assets/Plan%20A%20Trip.jpg" width = "250">  <img src= "https://github.com/Nikhil-1426/Voices Unheard /blob/main/assets/Profile%20Page.jpg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices Unheard /blob/main/assets/Settings%20Page.jpg" width = "250">
-<img src = "https://github.com/Nikhil-1426/Voices Unheard /blob/main/assets/Terms%20and%20Conditions.jpg" width = "250">  <img src= "https://github.com/Nikhil-1426/Voices Unheard /blob/main/assets/About%20Us.jpg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices Unheard /blob/main/assets/Help%20Centre.jpg" width = "250">
+<img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/auth.jpeg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/home.jpeg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/education.jpeg" width = "250">  
+<img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/education2.jpeg" width = "250">  <img src= "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/join_create_communities.jpeg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/chat_communities.jpeg" width = "250">  
+<img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/feed_communities.jpeg" width = "250">  <img src= "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/notification_communities.jpeg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/shop_products.jpeg" width = "250">  
+<img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/sell_products.jpeg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/history_products.jpeg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/cart_products.jpeg" width = "250">
 </pre>
 
 
