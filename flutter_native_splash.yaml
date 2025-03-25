@@ -1,0 +1,15 @@
+flutter_native_splash:
+  # Light background color matching your logo's inner circle
+  color: "#4B0082"  # Light cream/beige color
+  
+  # Your app logo
+  image: "assets/app_logo.png"
+  
+  # Android 12 specific settings
+  android_12:
+    color: "#4B0082"  
+    image: "assets/app_logo.png"
+    
+  # Enable for iOS
+  ios: true
+  web: false
