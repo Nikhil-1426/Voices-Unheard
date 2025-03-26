@@ -6,7 +6,7 @@
 ## Table of Contents
 - [Introduction](#-introduction)
 - [Live Preview](#live-preview)
-- [Voices Unheard  Project](#intro-to-Voices-Unheard-video)
+- [Voices Unheard  Project](#voices-unheard-project)
 - [Getting Started](#getting-started)
 - [Resources](#resources)
 - [Screenshots](#screenshots)
@@ -26,11 +26,13 @@
 
 ## Live Preview
 
-# Voices Unheard  Project:
+[Link to the Prototype](https://mega.nz/file/oi1kXaIa#IOJaUa6Tt8pP4mpEDvf-RJ3hdpaBt2Vj6-lU3MNAXrA)
 
-## Intro To Voices Unheard  Video
+# Voices Unheard Project:
 
-[Link to the Video](https://youtu.be/Nedx37vZ7AU)
+## Demo Video
+
+[Link to the Video](https://youtu.be/yI98eNruDeQ)
 
 ## Getting Started
 ## Setup:
