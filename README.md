@@ -49,6 +49,10 @@ cd Voices Unheard
 flutter pub get
 ```
 ```bash
+python app.py
+```
+* Update the localhost server address in the Flutter code (Education Page) after starting the Flask server.
+```bash
 flutter run
 ```
 
