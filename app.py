@@ -1,8 +1,10 @@
 from flask import Flask, jsonify
+from flask_cors import CORS
 import google.generativeai as genai
 import json
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS to allow requests from Flutter
 
 # Configure Gemini API
 genai.configure(api_key="AIzaSyCTsa5y7IzHAuodBJxIh0WhErFnG6zIhfw")
@@ -17,13 +19,19 @@ def fetch_education_resources():
         "Ensure the response is formatted correctly as a JSON dictionary with appropriate keys."
     )
     
-    model = genai.GenerativeModel("gemini-pro")
-    response = model.generate_content(prompt)
-    
     try:
-        return json.loads(response.text)
+        model = genai.GenerativeModel("gemini-1.5-pro-latest")
+        response = model.generate_content(prompt)
+
+        if response.text:
+            json_data = json.loads(response.text.strip("```json").strip("```"))  # Strip markdown if present
+            return json_data
+        else:
+            return {"error": "Empty response from Gemini API"}
     except json.JSONDecodeError:
         return {"error": "Invalid JSON format returned from Gemini"}
+    except Exception as e:
+        return {"error": f"Error fetching resources: {str(e)}"}
 
 @app.route("/fetch_resources", methods=["GET"])
 def get_resources():
