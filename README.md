@@ -56,7 +56,7 @@ flutter run
 
 - [Flutter Docs](https://docs.flutter.dev/)
 - [Figma](https://help.figma.com/hc/en-us)
-- [supabase Docs](https://supabase.google.com/docs)
+- [Supabase Docs](https://supabase.google.com/docs)
   
 # Screenshots
 <pre>
