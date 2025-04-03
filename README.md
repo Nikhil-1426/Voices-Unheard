@@ -1,12 +1,12 @@
 <center>
-<img src="http://readme-typing-svg.herokuapp.com?font=Fira+Code&pause=1000&width=435&lines=Welcome+to+Voices+Unheard+!" />
+<img src="https://readme-typing-svg.herokuapp.com/?font=Times+New+Roman&weight=500&size=30&pause=1000&width=435&lines=Welcome+to+Voices+Unheard!" />
 </center>
 
 
 ## Table of Contents
 - [Introduction](#-introduction)
 - [Live Preview](#live-preview)
-- [Voices Unheard  Project](#intro-to-Voices-Unheard-video)
+- [Voices Unheard  Project](#voices-unheard-project)
 - [Getting Started](#getting-started)
 - [Resources](#resources)
 - [Screenshots](#screenshots)
@@ -21,16 +21,18 @@
 
 **Problem Statement**: Underrepresented communities often struggle to find dedicated platforms that amplify their voices, facilitate community-driven initiatives, and provide economic opportunities. Existing platforms do not cater specifically to their unique needs, making it difficult for individuals to share their experiences, organize events, access educational resources, or support community-driven businesses effectively.
 
-**Solution**: Voices Unheard is a community-driven platform that empowers underrepresented individuals by providing a dedicated space for expression, collaboration, and economic growth. It offers a personalized feed for sharing stories, a community section for organizing events and donations, an education hub for career advancement, and a marketplace for buying and selling products within the community. Through seamless integration with Supabase and Razorpay, it ensures secure authentication, streamlined event planning, and efficient financial transactions.
+**Solution**: Voices Unheard is a community-driven platform that empowers underrepresented individuals by providing a dedicated space for expression, collaboration, and economic growth. It offers a personalized feed for sharing stories, a community section for organizing events and donations, an education hub for career advancement, and a marketplace for buying and selling products within the community. Through seamless integration with Flutter, Firebase, Supabase and Stripe, it ensures secure authentication, streamlined event planning, and efficient financial transactions.
 
 
 ## Live Preview
 
-# Voices Unheard  Project:
+[Link to the Prototype](https://mega.nz/file/oi1kXaIa#IOJaUa6Tt8pP4mpEDvf-RJ3hdpaBt2Vj6-lU3MNAXrA)
 
-## Intro To Voices Unheard  Video
+# Voices Unheard Project:
 
-[Link to the Video](https://youtu.be/Nedx37vZ7AU)
+## Demo Video
+
+[Link to the Video](https://youtu.be/yI98eNruDeQ)
 
 ## Getting Started
 ## Setup:
@@ -47,6 +49,10 @@ cd Voices Unheard
 flutter pub get
 ```
 ```bash
+python app.py
+```
+* Update the localhost server address in the Flutter code (Education Page) after starting the Flask server.
+```bash
 flutter run
 ```
 
@@ -54,13 +60,14 @@ flutter run
 
 - [Flutter Docs](https://docs.flutter.dev/)
 - [Figma](https://help.figma.com/hc/en-us)
-- [supabase Docs](https://supabase.google.com/docs)
+- [Supabase Docs](https://supabase.google.com/docs)
   
 # Screenshots
 <pre>
-<img src = "https://github.com/Nikhil-1426/Voices Unheard /blob/main/assets/Loading%20Page.jpg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices Unheard /blob/main/assets/Sign%20Up%20Page.jpg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices Unheard /blob/main/assets/Home%20Page.jpg" width = "250">
-<img src = "https://github.com/Nikhil-1426/Voices Unheard /blob/main/assets/Plan%20A%20Trip.jpg" width = "250">  <img src= "https://github.com/Nikhil-1426/Voices Unheard /blob/main/assets/Profile%20Page.jpg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices Unheard /blob/main/assets/Settings%20Page.jpg" width = "250">
-<img src = "https://github.com/Nikhil-1426/Voices Unheard /blob/main/assets/Terms%20and%20Conditions.jpg" width = "250">  <img src= "https://github.com/Nikhil-1426/Voices Unheard /blob/main/assets/About%20Us.jpg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices Unheard /blob/main/assets/Help%20Centre.jpg" width = "250">
+<img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/auth.jpeg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/home.jpeg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/education.jpeg" width = "250">  
+<img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/education2.jpeg" width = "250">  <img src= "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/join_create_communities.jpeg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/chat_communities.jpeg" width = "250">  
+<img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/feed_communities.jpeg" width = "250">  <img src= "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/notification_communities.jpeg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/shop_products.jpeg" width = "250">  
+<img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/sell_products.jpeg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/history_products.jpeg" width = "250">  <img src = "https://github.com/Nikhil-1426/Voices-Unheard/blob/main/assets/cart_products.jpeg" width = "250">
 </pre>
 
 
@@ -69,7 +76,7 @@ flutter run
 Users can share their stories, engage with others through likes, comments, and shares, and explore trending posts via an intuitive search function.
 
 2.**Dedicated Community Space**
-A specialized feed featuring only donation and event marketing posts.
+A specialized feed featuring only donation and event marketing posts from the communities which is the user is part of.
 Users can join or create communities, while admins manage event and donation listings.
 Integrated event booking system with venue and date selection.
 
@@ -78,8 +85,8 @@ Provides valuable educational resources, including scholarships, career opportun
 
 4.**Inclusive Marketplace**
 A dynamic buy-and-sell platform tailored for underrepresented entrepreneurs.
-Users can browse products, add items to their cart, and make secure payments through Razorpay.
-Sellers can list their products with images, descriptions, and pricing details.
+Users can browse products, add items to their cart, and make secure payments through Stripe.
+Sellers can list their products with images, descriptions, stock quantity and pricing details.
 
 5.**Seamless Transactions & Order History**
 Buyers can track past orders, view delivery dates, and manage their purchase history effortlessly.
@@ -87,7 +94,7 @@ Cart functionality includes quantity adjustments and a streamlined checkout proc
 
 ## Additional Features:
 - **Secure Authentication**-
-  -Uses supabase Authentication for secure sign-up and sign-in processes.
+  -Uses Supabase Authentication for secure sign-up and sign-in processes.
      
 - **Community-Driven Donations**
   -Integrated payment system for seamless contributions to community causes.
@@ -96,14 +103,17 @@ Cart functionality includes quantity adjustments and a streamlined checkout proc
 1.**Flutter / Dart**
 Used for building a seamless, cross-platform mobile application with an intuitive and engaging user interface designed to empower underrepresented communities.
 
-2.**Supabase**
-Serves as the backend for storing user data, posts, community events, donation records, product listings, and transaction history, ensuring real-time synchronization and easy access.
+2.**Supabase and Firebase**
+Serves as the backend for storing user data, posts, community events, donation records, product listings, images of products/posts and transaction history, ensuring real-time synchronization and easy access.
 
 3.**Supabase Auth**
 Provides secure user authentication and management while ensuring seamless and secure payment processing for donations and purchases within the community marketplace.
 
 4.**Figma**
 Used for designing and prototyping the app's interface, ensuring an aesthetically appealing and user-friendly experience.
+
+5.**Gemini AI**
+Gemini AI is used to provide educational insights by recommending relevant scholarships, mentorship programs, and career opportunities.
 
 # Hi, We are the makers of Voices Unheard ! 👋
 
