@@ -323,7 +323,7 @@ class EducationPage extends StatelessWidget {
   );
 }
 
-   void _showPopup(BuildContext context, String title, String details) {
+void _showPopup(BuildContext context, String title, String details) {
     // Define content for each category
 final Map<String, List<Map<String, dynamic>>> categoryContent = {
   'Scholarship & Grants': [
@@ -562,7 +562,7 @@ final Map<String, List<Map<String, dynamic>>> categoryContent = {
                     Text(
                       title,
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 19,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
