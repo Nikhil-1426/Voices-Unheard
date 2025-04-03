@@ -13,9 +13,17 @@ import 'product_page.dart';
 import 'settings_page.dart';
 import 'terms_and_conditions_page.dart';
 import 'about_us_page.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await Firebase.initializeApp();
+    print("Firebase initialized successfully!");
+  } catch (e) {
+    print("Firebase initialization failed: $e");
+  }
 
   await Supabase.initialize(
     url: 'https://lznhdaoukmjiiemyvsfc.supabase.co',
@@ -43,7 +51,6 @@ class MyApp extends StatelessWidget {
         '/termsAndConditions': (context) => TermsAndConditionsPage(),
         '/aboutUs': (context) => AboutUsPage(),
         '/userProfile': (context) => UserProfilePage(),
-
       },
     );
   }

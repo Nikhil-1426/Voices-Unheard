@@ -4,6 +4,10 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'home_page.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 final supabase = Supabase.instance.client;
 
@@ -51,31 +55,58 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
   }
 
   Future<void> signUp() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => isLoading = true);
-    try {
-      final response = await supabase.auth.signUp(
-        email: emailController.text,
-        password: passwordController.text,
-      );
-      if (response.user != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Welcome to our diverse community! Please verify your email.'),
-            backgroundColor: colors['accent2'],
-          ),
-        );
-      }
-    } catch (e) {
+  if (!_formKey.currentState!.validate()) return;
+  setState(() => isLoading = true);
+
+  try {
+    // Register user in Firebase
+    UserCredential firebaseUser = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: emailController.text,
+      password: passwordController.text,
+    );
+
+    // Register user in Supabase
+    final response = await supabase.auth.signUp(
+      email: emailController.text,
+      password: passwordController.text,
+    );
+
+    // Store additional user data in Firestore (Optional)
+    if (firebaseUser.user != null) {
+      await FirebaseFirestore.instance.collection('users').doc(firebaseUser.user!.uid).set({
+        'email': emailController.text,
+        'createdAt': DateTime.now(),
+      });
+    }
+
+    // Show success message only if Supabase signup succeeds
+    if (response.session != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: colors['error'],
+          content: Text('Welcome to our diverse community! Please verify your email.'),
+          backgroundColor: colors['accent2'],
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Signup successful, but email verification might be needed.'),
+          backgroundColor: colors['warning'],
         ),
       );
     }
-    setState(() => isLoading = false);
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error: ${e.toString()}'),
+        backgroundColor: colors['error'],
+      ),
+    );
   }
+
+  setState(() => isLoading = false);
+}
+
 
   Future<void> signIn() async {
     if (!_formKey.currentState!.validate()) return;
